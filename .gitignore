@@ -1,0 +1,23 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+raccoon_fe/node_modules
+raccoon_fe/.pnp
+raccoon_fe/.pnp.js
+
+# testing
+raccoon_fe/coverage
+
+# production
+raccoon_fe/build
+
+# misc
+raccoon_fe/.DS_Store
+raccoon_fe/.env.local
+raccoon_fe/.env.development.local
+raccoon_fe/.env.test.local
+raccoon_fe/.env.production.local
+
+raccoon_fe/npm-debug.log*
+raccoon_fe/yarn-debug.log*
+raccoon_fe/yarn-error.log*

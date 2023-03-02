@@ -1,0 +1,7 @@
+{
+    "baseURLTasks": "http://localhost:5000",
+    "tasks": {
+        "allTasks": "/tasks",
+        "taskDetail": "/task/"
+    }
+}

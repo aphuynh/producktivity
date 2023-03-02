@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css?family=Itim');
+
+.app-page{
+  height: 100vh;
+  width: 100vw;
+  padding: 0;
+  margin: 0;
+  
+  overscroll-behavior: none;
+  overflow: hidden;
+  display: flex;
+  background-color: #EAE7E2;
+  font-family: "Itim";
+}
