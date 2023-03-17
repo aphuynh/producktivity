@@ -11,4 +11,16 @@
   display: flex;
   background-color: #EAE7E2;
   font-family: "Itim";
+  color: #2F1D1A;
+}
+
+button, input, select{
+  font-family: "Itim";
+  color: #2F1D1A;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
