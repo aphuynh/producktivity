@@ -1,0 +1,8 @@
+.task-select-option{
+    display: flex;;
+    justify-content: flex-start;
+}
+
+.task-select-id{
+    color: var(--gray);
+}

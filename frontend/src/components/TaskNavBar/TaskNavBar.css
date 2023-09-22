@@ -1,0 +1,31 @@
+#task-nav-bar{
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 100%;
+}
+
+.sub-nav-item{
+    height: 70%;
+    box-sizing: border-box;
+    padding: 2px 15px;
+    border-radius: 20px;
+    margin: 0 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #2F1D1A;
+    background-color: white;
+    text-decoration: none;
+}
+
+.sub-active-nav-item{
+    background-color: #58AD14 !important;
+    color: white !important;
+}
+
+.sub-nav-item:link{
+    text-decoration: none;
+}

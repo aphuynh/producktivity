@@ -1,0 +1,68 @@
+#top-bar{
+    background-color: var(--white);
+    height: 100%;
+    width: 100%;
+    grid-row: 1/2;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    column-gap: 15px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+#top-bar[data-expanded="true"]{
+    grid-column: 2/4;
+}
+
+#top-bar[data-expanded="false"]{
+    grid-column: 3/4;
+}
+
+#wallet{
+    display: flex;
+    align-items: center;
+    height: 95%;
+    justify-content: space-between;
+    column-gap: 3px;
+    color: var(--green);
+}
+
+#name-section{
+    display: flex;
+    align-items: center;
+    height: 95%;
+    justify-content: space-between;
+    column-gap: 4px;
+    color: var(--gray);
+    
+}
+
+#top-bar-paw-icon{
+    height: 50%;
+    margin-right: 2px;
+}
+
+#top-bar-paw-icon>path{
+    fill: var(--light-green);
+}
+
+#top-bar-user-icon{
+    height: 40%;
+    width: auto;
+    
+    margin-right: 2px;
+}
+
+#top-bar-carrot-icon{
+    height: 30%;
+}
+
+#top-bar-carrot-icon>path{
+    fill: var(--gray);
+}
+
+#top-bar-user-icon>g>g{
+    stroke: var(--gray);
+    stroke-width: 1.5;
+}

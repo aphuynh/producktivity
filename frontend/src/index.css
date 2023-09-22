@@ -1,0 +1,6 @@
+*{
+  margin: 0;
+  padding: 0;
+  overscroll-behavior: none;
+  --toastify-toast-min-height: 10px;
+}

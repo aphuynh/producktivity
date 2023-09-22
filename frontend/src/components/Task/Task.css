@@ -1,0 +1,140 @@
+.indent{
+    width: 20px;
+    height: auto;
+    display: inline-block;
+}
+
+.indents{
+    display:flex;
+    justify-content: center;
+}
+
+.task-bar-wrapper{
+    width: 100%;
+}
+
+.task-bar{
+    list-style-type: none;
+    background-color: var(--light-gray);
+    width: 100%;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    border: 2px solid var(--light-gray);
+    border-bottom: 2px solid rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 5px;
+    cursor: pointer;
+}
+
+.task-bar[data-selected="true"]{
+    border: 2px dashed var(--dark-brown);
+}
+
+.task-bar[data-selected="true"]>.left-task-bar>.label{
+    max-height: none;
+}
+
+.task-bar:hover{
+    background-color: var(--light-green);
+    border: 2px solid var(--light-green);
+}
+
+.task-bar[data-selected="true"]:hover{
+    border: 2px dashed var(--dark-brown);
+}
+
+.left-task-bar{
+    display: flex;
+    width: 100%;
+}
+
+.right-task-bar{
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 80px;
+    align-items: center;
+    text-align: right;
+}
+
+.task-bar-children{
+    width: 100%;
+}
+
+.label{  
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    padding-left: 15px;
+    font-size: .9em;
+    line-height: 1.2em;
+    max-height: 2.4em;
+    overflow: hidden;
+    justify-content: flex-start;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+.carrot-icon{
+    fill: var(--gray);
+    width: 10px;
+    height: auto;
+    transform: rotate(0deg);
+    cursor: pointer;
+}
+
+.expand-div-empty{
+    width: 8px;
+    flex-shrink: 0;
+    height: 1px;
+}
+
+.task-bar-paw-icon{
+    height: 10px;
+    width: auto;
+    fill: var(--green);
+}
+
+.task-due-date{
+    font-size: .68em;
+    color: var(--gray);
+    height: 13px;
+}
+
+.task-due-date[data-is-late="true"]{
+    color: var(--red);
+}
+
+.task-progress{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    box-sizing: border-box;
+    border: 2px solid var(--green);
+    font-size: .8em;
+    column-gap: 2px;
+}
+
+.task-progress[data-is-complete=true]{
+    width: 100%;
+    background-color: var(--green);
+    color: var(--white);
+}
+
+.task-progress[data-is-complete=false]{
+    width: 100%;
+    background-color: var(--white);
+    color: var(--green);
+}
+
+.expand-div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
