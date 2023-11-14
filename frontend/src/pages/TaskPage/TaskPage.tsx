@@ -5,16 +5,18 @@ import "./TaskPage.css"
 import TaskNavBar from '../../components/TaskNavBar/TaskNavBar'
 import { TaskInterface } from '../../interfaces/Task'
 import MainTaskPage from './subTaskPages/MainTaskPage/MainTaskPage'
-import AddTaskForm from '../../components/AddTaskForm/AddTaskForm'
+import AddTaskForm from '../../components/TaskForm/AddTaskForm'
 import { ListInterface } from '../../interfaces/List'
 import ManageListsWindow from '../../components/ManageListsWindow/ManageListsWindow'
+import EditTaskForm from '../../components/TaskForm/EditTaskForm'
 
 export interface TaskPageProps{
     closePageDisable: Dispatch<SetStateAction<void>>,
 	getWallet: Dispatch<void>,
 	lists: Array<ListInterface>,
 	setLists: Dispatch<SetStateAction<Array<ListInterface>>>,
-	getLists: Dispatch<void>
+	getLists: Dispatch<void>,
+	setClickToClose: Dispatch<SetStateAction<boolean>>
 }
 
 const TaskPage: FunctionComponent<TaskPageProps> = ({
@@ -22,7 +24,8 @@ const TaskPage: FunctionComponent<TaskPageProps> = ({
 	getWallet,
 	lists,
 	setLists,
-	getLists
+	getLists,
+	setClickToClose
 }) => {
 
 	const [tasks, setTasks] = useState([{}]);
@@ -35,6 +38,8 @@ const TaskPage: FunctionComponent<TaskPageProps> = ({
 	
     const [parentTaskSelect, setParentTaskSelect] = useState("");
 	const [allowParentSelectChange, setAllowParentSelectChange] = useState(true);
+
+	const [openLists, setOpenLists] = useState<Array<number>>([]);
 
 	const getTasksInOrder = useCallback(async () => {
         let response: any = await fetch("/tasks/ordered");
@@ -86,12 +91,24 @@ const TaskPage: FunctionComponent<TaskPageProps> = ({
 				getTasksInOrder={getTasksInOrder}
 				lists={lists}
 			></AddTaskForm>
+			<EditTaskForm
+				closePageDisable={closePageDisable}
+				tasks={tasks as Array<TaskInterface>}
+				getTasks={getTasks}
+				getTasksInOrder={getTasksInOrder}
+				lists={lists}
+				currentTask={currentTask}
+			></EditTaskForm>
 			<ManageListsWindow
 				lists={lists}
 				setLists={setLists}
 				getLists={getLists}
+				currentList={currentList}
+				setCurrentList={setCurrentList}
+				openLists={openLists}
+				setOpenLists={setOpenLists}
 			></ManageListsWindow>
-			<TaskNavBar pages={['all', 'progress']}/>
+			{/*<TaskNavBar pages={['all', 'progress']}/>*/}
 			<div id='task-page-content'>
 				<Routes>
 					<Route path="/pinboard" element={<PageNotFound/>}/>
@@ -114,7 +131,10 @@ const TaskPage: FunctionComponent<TaskPageProps> = ({
 							getLists={getLists}
 							currentList={currentList}
 							setCurrentList={setCurrentList}
+							openLists={openLists}
+							setOpenLists={setOpenLists}
 							getWallet={getWallet}
+							setClickToClose={setClickToClose}
 						/>}/>
 				</Routes>
 				</div>

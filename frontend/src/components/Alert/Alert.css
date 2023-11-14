@@ -1,0 +1,89 @@
+.alert-blur{
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, .4);
+    z-index: 500;
+    top: 0;
+    left: 0;
+}
+
+.alert-blur[data-is-visible = "false"]{
+    display: none;
+}
+
+.alert-blur[data-is-visible = "true"]{
+    display: flex;
+}
+
+.alert-window{
+    min-height: 150px;
+    width: 300px;
+    background-color: white;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.alert-message{
+    height: 100%;
+    width: 100%;
+    flex-grow: 1;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid var(--light-gray);
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.alert-actions{
+    flex-shrink: 0;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    column-gap: 5px;
+}
+
+.alert-buttons{
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: .85em;
+    cursor: pointer;
+}
+
+.alert-confirm-button{
+    background-color: var(--red);
+    color: white;
+    border: 1px solid var(--red);
+}
+
+.alert-cancel-button{
+    border: 1px solid var(--gray);
+    background-color: var(--light-hover);
+}
+
+.alert-confirm-button:hover{
+    background-color: var(--red-hover);
+    border: 1px solid var(--red-hover);
+}
+
+.alert-confirm-button:active{
+    background-color: var(--red-active);
+    border: 1px solid var(--red-active);
+}
+
+.alert-cancel-button:hover{
+    background-color: var(--light-gray);
+}
+
+.alert-cancel-button:active{
+    background-color: var(--light-gray-active);
+}

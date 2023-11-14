@@ -94,6 +94,7 @@ const AddTaskForm:FunctionComponent<AddTaskFormProps> = ({
         const task = getValues("name");
         const description = getValues("description");
         const parent_task = getValues("parent-task");
+        console.log(parent_task);
         const parent_id = parent_task === "" ? null : parseInt(parent_task);
         const priority = getValues("priority");
         const reward = getValues("reward");

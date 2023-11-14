@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Dispatch, useCallback, useEffect, useState } from 'react';
 import './App.css';
 import NavSideBar from './components/NavSideBar/NavSideBar';
 import TopBar from './components/TopBar/TopBar';
@@ -10,6 +10,7 @@ import { ListInterface } from './interfaces/List';
 function App() {
 	const [wallet, setWallet] = useState(-1);
 	const [lists, setLists] = useState<Array<ListInterface>>([]);
+	const [clickToClose, setClickToClose] = useState(true);
 
 	const getWallet = useCallback(async () => {
         let response = await fetch("/wallet");
@@ -22,6 +23,12 @@ function App() {
 		document.getElementById("disabled-page-content")!.style.display = "none";
 		document.getElementById("add-task-form")!.style.display = "none";
 		document.getElementById("manage-lists-window")!.style.display = "none";
+	}
+
+	const handlePageDisableClick = () =>{
+		if(clickToClose){
+			closePageDisable();
+		}
 	}
 
 	const getLists = useCallback(async () => {
@@ -53,11 +60,12 @@ function App() {
 				lists={lists}
 				setLists={setLists}
 				getLists={getLists}
+				setClickToClose={setClickToClose}
 			></TaskPage>}/>
 			<Route path="*" element={<PageNotFound/>}/>
 			</Routes>
 		</div>
-		<div id='disabled-page-content' data-expanded="false" onClick={closePageDisable}></div>
+		<div id='disabled-page-content' data-expanded="false" onClick={handlePageDisableClick}></div>
 		</div>
 	);
 }

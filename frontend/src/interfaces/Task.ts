@@ -11,5 +11,6 @@ export interface TaskInterface{
     complete_date: string,
     type: string,
     subtasks: Array<TaskInterface>,
-    lists: Array<number>
+    lists: Array<number>,
+    parent_id: number
 }

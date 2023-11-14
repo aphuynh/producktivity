@@ -3,10 +3,6 @@ import {TaskInterface} from '../../../../interfaces/Task.ts'
 import {ListInterface} from '../../../../interfaces/List.ts'
 import Task from '../../../../components/Task/Task.tsx'
 import "./MainTaskPage.css"
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-import Undo from '../../../../components/ToastActions/Undo.tsx';
 
 
 import { ReactComponent as GearIcon } from '../../../../assets/gear.svg';
@@ -22,6 +18,7 @@ import { ReactComponent as SearchIcon } from '../../../../assets/search.svg';
 
 
 import { parseDateTime, parseDate, parseTime} from '../../../../utils/parseTime.tsx';
+import Alert from '../../../../components/Alert/Alert.tsx'
 
 
 interface MainTaskPageProps{
@@ -49,7 +46,10 @@ interface MainTaskPageProps{
     currentList: ListInterface|string,
     setCurrentList: Dispatch<SetStateAction<ListInterface|string>>,
 
-    getWallet: Dispatch<void>
+    getWallet: Dispatch<void>,
+    openLists: Array<number>,
+    setOpenLists: Dispatch<SetStateAction<Array<number>>>,
+    setClickToClose: Dispatch<SetStateAction<boolean>>
 }
 
 
@@ -71,10 +71,12 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
     getLists,
     currentList,
     setCurrentList,
-    getWallet
+    getWallet,
+    openLists,
+    setOpenLists,
+    setClickToClose
 }) => {
 
-    const [openLists, setOpenLists] = useState<Array<number>>([]);
     const [listsMap, setListsMap] = useState<Map<number, ListInterface>>(new Map());
     const [listsFilter, setListsFilter] = useState("");
     const [listTaskMap, setListTaskMap] = useState<Map<number, number[]>>(new Map());
@@ -91,12 +93,23 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
         {value: "alphabetical", label: "A-Z"},
     ];
 
+    const [taskToRemove, setTaskToRemove] = useState(-1);
+
+    const alertMessage = "Are you sure you want to delete this task and all of its subtasks? This action cannot be undone.";
+
     const openAddTaskForm = () => {
         document.getElementById("add-task-form")!.style.display = "flex";
+        setClickToClose(true);
+    }
+
+    const openEditTaskForm = () => {
+        document.getElementById("edit-task-form")!.style.display = "flex";
+        setClickToClose(false);
     }
 
     const openManageListsWindow = () => {
         document.getElementById("manage-lists-window")!.style.display = "flex";
+        setClickToClose(true);
     }
 
     const handleAddTaskButtonClick = (e: MouseEvent<SVGSVGElement>) => {
@@ -116,6 +129,13 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
 
         closeAddTaskTab();
         openManageListsWindow();
+    }
+
+    const handleEditTaskButtonClick = (e: MouseEvent<HTMLElement>) => {
+        let page_disable = document.getElementById("disabled-page-content")!;
+        page_disable.style.display = "block";
+        
+        openEditTaskForm();
     }
 
     const handleAddTaskTab = (e: MouseEvent<HTMLElement>) => {
@@ -148,7 +168,6 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
     const completeTask = useCallback(async (id: number) => {
         let response = await fetch("/complete/" + id);
             response = await response.json();
-            console.log(response);
     }, [])
 
     const undoCompleteTask = useCallback(async (id: number) => {
@@ -170,6 +189,7 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
 	}, [])
 
     const removeTask = useCallback(async (id: number) => {
+        console.log(id)
         let response = await fetch("/remove/" + id);
             response = await response.json();
             console.log(response);
@@ -211,9 +231,8 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
 
     const handleRemoveTask = () =>{
         if(currentTask){
-            removeTask(currentTask.id);
-            getTasks();
-            getTasksInOrder();
+            document.getElementById("alert-blur-tasks")?.setAttribute("data-is-visible", "true");
+            setTaskToRemove(currentTask.id);
         }
     }
 
@@ -360,13 +379,13 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
     const handleToggleDropdown = (e: MouseEvent<SVGSVGElement>) => {
         let type = e.currentTarget.id;
         if(e.currentTarget.getAttribute("data-display") === "shown"){
-            if(type == "filter-icon"){
+            if(type === "filter-icon"){
                 closeFilterDropDown();
             }else{
                 closeSortDropDown();
             }
         }else{
-            if(type == "filter-icon"){
+            if(type === "filter-icon"){
                 closeSortDropDown();
                 openFilterDropDown();
             }else{
@@ -417,10 +436,22 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
 
     useEffect(()=>{
         countTasks();
-    },[currentList, tasks, countTasks])
+    },[currentList, tasks, countTasks]);
+
+    useEffect(() => {
+        getTasks();
+        getTasksInOrder();
+    }, [taskToRemove])
 
     return (
         <div id='main-tasks-page'>
+            <Alert
+                message={alertMessage} 
+                confirmAction={removeTask} 
+                idToRemove={taskToRemove} 
+                setIdToRemove={setTaskToRemove}
+                type='tasks'
+            />
             <div id='main-tasks-page-left'>
                 <div id='task-tabs'>
                     <div id="task-tabs-wrapper">
@@ -496,7 +527,6 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
                     <div id='list-options-bar'>
                         <div id='list-options-left'>
                             <div id='task-list-name'>{currentList === "all" ? "All Tasks" : (currentList as ListInterface).name} ({numTasks})</div>
-                            <GearIcon id="gear-icon"></GearIcon>
                         </div>
                         <div id='list-options-right'>
                             <div id="list-options-sort-wrapper" onMouseLeave={closeSortDropDown}>
@@ -535,7 +565,7 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
                         </div>
                     </div>
                     <div id='task-list-wrapper'>
-                        {tasks.length > 0 && typeof tasks[1] === "object" ?
+                        {numTasks > 0 ?
                         <div id='tasks-list'>
                         {tasks.sort(sortTasks).map((task, ind)=>(
                                 subtasksCount.has(ind) && subtasksCount.get(ind)! > 0 ? 
@@ -552,7 +582,8 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
                                     currentList={currentList}
                                     listTaskMap={listTaskMap}
                                     currentTaskFilter={currentTaskFilter}
-                                ></Task> : ""
+                                ></Task> : 
+                                ""
                         ))}
                         </div> : 
                             <div id="empty-task-list-display">
@@ -592,7 +623,7 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
                     <div className='task-action-buttons' id='complete-task-button' data-mode={currentTask.is_completed ? "undo" : "complete"} onClick={handleCompleteTask}>
                         {currentTask.is_completed ? "Undo Complete" : "Mark Complete"}
                     </div>
-                    <div className='task-action-buttons' id='edit-task-button'>Edit Task</div>
+                    <div className='task-action-buttons' id='edit-task-button' onClick={handleEditTaskButtonClick}>Edit Task</div>
                     <div className='task-action-buttons' id='delete-task-button' onClick={handleRemoveTask}>Delete Task</div>
                 </>: ""}
             </div>

@@ -3,8 +3,14 @@ import threading
 import datetime
 from Task import Task
 from List import List
+from Checklist import Checklist
+from ChecklistItem import ChecklistItem
+from Habit import Habit
 
 class ProducktivityManager:
+
+#--------- INITIALIZATION -----------
+
     def __init__(self):
         self.db = sqlite3.connect("producktivity.db", check_same_thread=False)
         self.db.execute("PRAGMA foreign_keys = 1")
@@ -64,6 +70,9 @@ class ProducktivityManager:
             self.modify_db_query(create_list_command)
             self.modify_db_query(create_task_list_command)
             
+
+# --------- TESTING -----------
+
     def insert_test_tasks(self):
         insert_tasks_query = """INSERT OR IGNORE INTO task(name, description, is_completed, reward, priority, due_date, start_date, complete_date, type, parent_id) 
                         VALUES (?,?,?,?,?,?,?,?,?, ?)"""
@@ -84,7 +93,69 @@ class ProducktivityManager:
         for param in task_params:
             self.modify_db_query(insert_tasks_query, param)
 
+
+# --------- GENERAL -----------
+
+    def get_last_row_id(self):
+        id = -1
+        try:
+            self.lock.acquire(True)
+            id = self.cursor.lastrowid
+        except Exception as e:
+            print(e)
+            id = -1
+        finally:
+            self.lock.release()
+        return id
+
+    def modify_db_query(self, query, params=()):
+        row_count = -1
+
+        try:
+            self.lock.acquire(True)
+            self.cursor.execute(query, params)
+            row_count = self.cursor.rowcount
+            self.db.commit()
+        except Exception as e:
+            print(e)
+            row_count = -1
+        finally:
+            self.lock.release()
+
+        return row_count
+
+    def get_single_row_query(self, query, params=()):
+        value = None
+
+        try:
+            self.lock.acquire(True)
+            self.cursor.execute(query, params)
+            value = self.cursor.fetchone()[0]
+        except Exception as e:
+            print(e)
+        finally:
+            self.lock.release()
+
+        return value
+
+    def get_mutiple_rows_query(self, query, params=()):
+        items = []
+
+        try:
+            self.lock.acquire(True)
+            self.cursor.execute(query, params)
+            items = self.cursor.fetchall()
+        except Exception as e:
+            print(e)
+        finally:
+            self.lock.release()
+        
+
+        return items
+
     
+# --------- TASK METHODS -----------
+
     def get_tasks_ordered(self):
         tasks = []
 
@@ -143,8 +214,16 @@ class ProducktivityManager:
         result = self.modify_db_query(insert_query, (name, description, False, reward, priority, due_date, datetime.datetime.now(), type, parent_id))
         return self.get_last_row_id() if result else -1
     
+    def edit_task(self, id, name, description, reward, priority, due_date=None, type="normal", parent_id=None):
+        insert_query = ("UPDATE task SET name = ?, description = ?, reward = ?, priority = ?, due_date = ?, type = ?, parent_id = ? WHERE id = ?")
+        return self.modify_db_query(insert_query, (name, description, reward, priority, due_date, type, parent_id, id))
+    
     def apply_lists_to_task(self, taskid, lists):
         rows = 0
+        
+        delete_query = ("DELETE FROM task_list WHERE task_id = ?")
+        self.modify_db_query(delete_query, (taskid,))
+
         insert_query = ("INSERT INTO task_list(task_id, list_id) VALUES (?, ?)")
         for list in lists:
             rows += self.modify_db_query(insert_query, (taskid, list))
@@ -165,11 +244,11 @@ class ProducktivityManager:
         return self.modify_db_query(update_query, (updated_balance,))
 
     def complete_task(self, task_id):
-        complete_query = ("UPDATE Task SET is_completed = true, complete_date = ? WHERE id = ?")
+        complete_query = ("UPDATE task SET is_completed = true, complete_date = ? WHERE id = ?")
         return self.modify_db_query(complete_query, (datetime.datetime.now(), task_id))
     
     def undo_complete_task(self, task_id):
-        complete_query = ("UPDATE Task SET is_completed = false, complete_date = NULL WHERE id = ?")
+        complete_query = ("UPDATE task SET is_completed = false, complete_date = NULL WHERE id = ?")
         return self.modify_db_query(complete_query, (task_id,))
     
     def delete_task(self, task_id):
@@ -186,6 +265,14 @@ class ProducktivityManager:
     def add_list(self, name):
         insert_query = "INSERT INTO list (name) VALUES (?)"
         return self.modify_db_query(insert_query, (name, )), self.get_last_row_id()
+    
+    def remove_list(self, id):
+        delete_query = "DELETE FROM list WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+    
+    def rename_list(self, id, name):
+        update_query = "UPDATE list SET name = ? WHERE id = ?"
+        return self.modify_db_query(update_query, (name, id))
     
     def get_list_task_map(self):
         list_task_map = {}
@@ -214,59 +301,75 @@ class ProducktivityManager:
         return lists
 
 
-    def get_last_row_id(self):
-        id = -1
-        try:
-            self.lock.acquire(True)
-            id = self.cursor.lastrowid
-        except Exception as e:
-            print(e)
-            id = -1
-        finally:
-            self.lock.release()
-        return id
+#--------- CHECKLIST METHODS -----------
 
-    def modify_db_query(self, query, params=()):
-        row_count = -1
+    def get_checklists(self):
+        checklists = []
 
-        try:
-            self.lock.acquire(True)
-            self.cursor.execute(query, params)
-            row_count = self.cursor.rowcount
-            self.db.commit()
-        except Exception as e:
-            print(e)
-            row_count = -1
-        finally:
-            self.lock.release()
+        query = "SELECT * FROM checklist"
+        for checklist in self.get_mutiple_rows_query(query):
+            checklists.append(Checklist(checklist[0], checklist[1]))
 
-        return row_count
+        return checklists
+    
+    def get_checklist_items(self, checklist_id):
+        checklist_items = []
 
-    def get_single_row_query(self, query, params=()):
-        value = None
+        query = "SELECT * FROM checklist_item WHERE checklist_id = ?"
+        for item in self.get_mutiple_rows_query(query, (checklist_id, )):
+            checklist_items.append(ChecklistItem(item[0], item[1], item[2], item[3]))
 
-        try:
-            self.lock.acquire(True)
-            self.cursor.execute(query, params)
-            value = self.cursor.fetchone()[0]
-        except Exception as e:
-            print(e)
-        finally:
-            self.lock.release()
+        return checklist_items
 
-        return value
+    def add_checklist(self, name):
+        insert_query = "INSERT INTO checklist (name) VALUES (?)"
+        return self.modify_db_query(insert_query, (name, )), self.get_last_row_id()
+    
+    def remove_checklist(self, id):
+        delete_query = "DELETE FROM checklist WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+    
+    def complete_checklist_item(self, id):
+        complete_query = ("UPDATE checklist_item SET is_completed = true WHERE id = ?")
+        return self.modify_db_query(complete_query, (id, ))
+    
+    def undo_complete_checklist_item(self, id):
+        complete_query = ("UPDATE checklist_item SET is_completed = false WHERE id = ?")
+        return self.modify_db_query(complete_query, (id,))
+    
+    def add_checklist_item(self, checklist_id, name, description):
+        insert_query = "INSERT INTO checklist_item (checklist_id, name, description, is_complete) VALUES (?, ?, ?, ?)"
+        return self.modify_db_query(insert_query, (checklist_id, name, description, False)), self.get_last_row_id()
+    
+    def edit_checklist_item(self, id, name, description):
+        update_query = ("UPDATE checklist_item SET name = ?, description = ? WHERE id = ?")
+        return self.modify_db_query(update_query, (name, description, id))
+    
+    def delete_checklist_item(self, id):
+        delete_query = "DELETE FROM checklist_item WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
 
-    def get_mutiple_rows_query(self, query, params=()):
-        items = []
+#--------- HABIT METHODS -----------
 
-        try:
-            self.lock.acquire(True)
-            self.cursor.execute(query, params)
-            items = self.cursor.fetchall()
-        except Exception as e:
-            print(e)
-        finally:
-            self.lock.release()
-        
+    def get_habits(self):
+        habits = []
 
-        return items
+        query = "SELECT * FROM habit"
+        for habit in self.get_mutiple_rows_query(query):
+            habits.append(Habit(habit[0], habit[1], habit[2], habit[3], habit[4], habit[5], habit[6]))
+
+        return habits
+
+    def add_habit(self, name, reward, times_needed, img, frequency):
+        insert_query = "INSERT INTO habit (name, reward, times_completed, times_needed, img, frequency) VALUES (?,?,?,?,?,?)"
+        return self.modify_db_query(insert_query, (name, reward, 0, times_needed, img, frequency)), self.get_last_row_id()
+    
+    def edit_habit(self, id, name, reward, times_completed, times_needed, img, frequency):
+        update_query = "UPDATE habit SET name = ?, SET reward = ?, SET times_completed = ?, SET times_needed = ?, SET img = ?, SET frequency = ? WHERE id = ?) VALUES (?,?,?,?,?,?)"
+        return self.modify_db_query(update_query, (name, reward, times_completed, times_needed, img, frequency, id))
+    
+    def delete_habit(self, id):
+        delete_query = "DELETE FROM habit WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+
+#--------- STORE METHODS -----------

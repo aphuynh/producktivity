@@ -71,7 +71,6 @@ ul{
     height: 30px;
     flex-shrink: 0;
     display: flex;
-    padding-left: 2px;
     box-sizing: border-box;
     justify-content: flex-start;
 }
@@ -570,14 +569,12 @@ ul{
     cursor: pointer;
 }
 
-
-
 #complete-task-button[data-mode="complete"]{
     background-color: var(--light-green);
 }
 
 #complete-task-button[data-mode="undo"]{
-    background-color: var(--light-green);
+    background-color: var(--light-gray-hover);
 }
 
 #edit-task-button{
@@ -588,18 +585,49 @@ ul{
     background-color: var(--red);
 }
 
+#complete-task-button[data-mode="complete"]:hover{
+    background-color: var(--light-green-hover);
+}
+
+#complete-task-button[data-mode="undo"]:hover{
+    background-color: var(--light-gray);
+}
+
+#edit-task-button:hover{
+    background-color: var(--light-green-hover);
+}
+
+#delete-task-button:hover{
+    background-color: var(--red-hover);
+}
+
+#complete-task-button[data-mode="complete"]:active{
+    background-color: var(--light-green-active);
+}
+
+#complete-task-button[data-mode="undo"]:active{
+    background-color: var(--light-gray-active);
+}
+
+#edit-task-button:active{
+    background-color: var(--light-green-active);
+}
+
+#delete-task-button:active{
+    background-color: var(--red-active);
+}
+
 #task-info-label{
     text-decoration: underline;
-}
-.task-action-buttons:active {
-    background-color: var(--green) !important;
 }
 
 #empty-task-list-display{
     height: 90%;
     width: 100%;
+    padding-top: 10%;
+    box-sizing: border-box;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     color: var(--gray);
 }

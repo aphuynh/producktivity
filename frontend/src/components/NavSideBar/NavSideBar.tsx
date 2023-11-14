@@ -17,19 +17,19 @@ const NavSideBar = () => {
   return (
     <nav id='nav-side-bar' data-expanded="true">
 		<div id='title-wrapper'>
-			<MenuIcon id="menu-icon" fill="2F1D1A" stroke="2F1D1A"></MenuIcon>
-			<div id='title-label'>Critter</div>
+			<div id='title-label'>Producktivity</div>
 		</div>
 		<div id='nav-sections-wrapper'>
 			<div className='nav-section'>
 				<div className='nav-section-label'>
 					PAGES
 				</div>
-				<NavLink className={getNavClass} to="/" end>Home</NavLink>
-				<NavLink className={getNavClass} to="/calendar" end>Calendar</NavLink>
+				{/*<NavLink className={getNavClass} to="/" end>Home</NavLink>*/}
+				<NavLink className={getNavClass} to="/" end>Calendar</NavLink>
 				<NavLink className={getNavClassTask} to="/tasks/all" end>Tasks</NavLink>
+				<NavLink className={getNavClass} to="/checklist" end>Checklist</NavLink>
 				<NavLink className={getNavClass} to="/habits" end>Habits</NavLink>
-				<NavLink className={getNavClass} to="/journal" end>Journal</NavLink>
+				<NavLink className={getNavClass} to="/store" end>Store</NavLink>
 			</div>
 			{/*
 			<div className='nav-section'>

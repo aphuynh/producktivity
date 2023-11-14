@@ -148,3 +148,14 @@
 #manage-lists-window-trash-icon:active>path{
     stroke: var(--green);
 }
+
+.manage-lists-window-list-name{
+    border: none;
+    background: none;
+    padding-left: 0;
+    height: 100%;
+}
+
+.manage-lists-window-list-name:focus{
+    color: var(--green);
+}
