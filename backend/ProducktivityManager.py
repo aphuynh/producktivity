@@ -22,6 +22,7 @@ class ProducktivityManager:
     def initialize_database(self): #break down later if necessary
 
         #check if database is empty
+
         table_count_query =  "SELECT COUNT(*) FROM sqlite_schema"
         tables = 0
 
@@ -48,28 +49,50 @@ class ProducktivityManager:
 
             create_task_command = """CREATE TABLE IF NOT EXISTS task(
                                    id INTEGER PRIMARY KEY,
-                                   name TEXT, 
+                                   name TEXT NOT NULL, 
                                    description TEXT,  
                                    is_completed BOOLEAN, 
-                                   reward INTEGER, 
-                                   priority INTEGER, 
+                                   reward INTEGER NOT NULL, 
+                                   priority INTEGER NOT NULL, 
                                    due_date DATETIME, 
                                    start_date DATETIME, 
                                    complete_date DATETIME, 
                                    type TEXT,
                                    parent_id INTEGER)"""
             
-            create_list_command = "CREATE TABLE list (id INTEGER PRIMARY KEY, name TEXT UNIQUE)"
-            create_task_list_command = """CREATE TABLE task_list(
+            create_list_command = "CREATE TABLE IF NOT EXISTS list (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL)"
+
+            create_task_list_command = """CREATE TABLE IF NOT EXISTS task_list(
                                         task_id INTEGER, 
                                         list_id INTEGER, 
                                         PRIMARY KEY (task_id, list_id), 
                                         FOREIGN KEY (task_id) REFERENCES task(id) ON DELETE CASCADE ON UPDATE CASCADE, 
                                         FOREIGN KEY (list_id) REFERENCES list(id) ON DELETE CASCADE ON UPDATE CASCADE)"""
+            
+            create_checklist_command = "CREATE TABLE IF NOT EXISTS checklist (id INTEGER PRIMARY KEY, name TEXT UNIQUE NOT NULL);"
+            create_checklist_item_command = """CREATE TABLE IF NOT EXISTS checklist_item (
+                                                    id INTEGER PRIMARY KEY, 
+                                                    checklist_id INTEGER, 
+                                                    name TEXT NOT NULL, 
+                                                    description TEXT, 
+                                                    is_complete BOOLEAN);"""
+
+            create_habit_command = """CREATE TABLE IF NOT EXISTS habit(
+                                        id INTEGER PRIMARY KEY,
+                                        name TEXT UNIQUE NOT NULL,
+                                        reward INTEGER NOT NULL,
+                                        times_completed INTEGER NOT NULL,
+                                        times_needed INTEGER NOT NULL,
+                                        img TEXT,
+                                        frequency INTEGER NOT NULL);"""
+
             self.modify_db_query(create_task_command)
             self.modify_db_query(create_list_command)
             self.modify_db_query(create_task_list_command)
-            
+
+            self.modify_db_query(create_checklist_command)
+            self.modify_db_query(create_checklist_item_command)
+            self.modify_db_query(create_habit_command)            
 
 # --------- TESTING -----------
 
@@ -92,6 +115,24 @@ class ProducktivityManager:
         
         for param in task_params:
             self.modify_db_query(insert_tasks_query, param)
+
+
+    def insert_test_habits(self):
+        insert_habits_query = """INSERT OR IGNORE INTO habit(name, reward, times_completed, times_needed, img, frequency) 
+                        VALUES (?,?,?,?,?,?)"""
+                
+        task_params = [("Drink Water", 2, 0, 6, "", "daily"),
+                  ("Crochet a Project", 5, 0, 1, "", "weekly"),
+                  ("Leetcode", 3, 0, 4, "", "daily"),
+                  ("Tennis", 5, 0, 1, "", "weekly"),
+                  ("Job Applications", 4, 0, 5, "", "daily"),
+                  ("Eat", 2, 0, 3, "", "daily"),
+                  ("Shower", 2, 0, 1, "", "daily"),
+                  ("Maple Dailies", 1, 0, 3, "", "daily"),
+                  ("Genshin Dailies", 1, 0, 2, "", "daily")]
+        
+        for param in task_params:
+            self.modify_db_query(insert_habits_query, param)
 
 
 # --------- GENERAL -----------
@@ -317,7 +358,7 @@ class ProducktivityManager:
 
         query = "SELECT * FROM checklist_item WHERE checklist_id = ?"
         for item in self.get_mutiple_rows_query(query, (checklist_id, )):
-            checklist_items.append(ChecklistItem(item[0], item[1], item[2], item[3]))
+            checklist_items.append(ChecklistItem(item[0], item[1], item[2], item[3], item[4]))
 
         return checklist_items
 
@@ -325,16 +366,20 @@ class ProducktivityManager:
         insert_query = "INSERT INTO checklist (name) VALUES (?)"
         return self.modify_db_query(insert_query, (name, )), self.get_last_row_id()
     
+    def edit_checklist(self, id, name):
+        update_query = "UPDATE checklist SET name = ? WHERE id = ?"
+        return self.modify_db_query(update_query, (name, id))
+    
     def remove_checklist(self, id):
         delete_query = "DELETE FROM checklist WHERE id = ?"
         return self.modify_db_query(delete_query, (id,))
     
     def complete_checklist_item(self, id):
-        complete_query = ("UPDATE checklist_item SET is_completed = true WHERE id = ?")
+        complete_query = ("UPDATE checklist_item SET is_complete = true WHERE id = ?")
         return self.modify_db_query(complete_query, (id, ))
     
     def undo_complete_checklist_item(self, id):
-        complete_query = ("UPDATE checklist_item SET is_completed = false WHERE id = ?")
+        complete_query = ("UPDATE checklist_item SET is_complete = false WHERE id = ?")
         return self.modify_db_query(complete_query, (id,))
     
     def add_checklist_item(self, checklist_id, name, description):
@@ -359,17 +404,39 @@ class ProducktivityManager:
             habits.append(Habit(habit[0], habit[1], habit[2], habit[3], habit[4], habit[5], habit[6]))
 
         return habits
+    
+    def get_daily_habits(self):
+        habits = []
+
+        query = "SELECT * FROM habit WHERE frequency = 'daily'"
+        for habit in self.get_mutiple_rows_query(query):
+            habits.append(Habit(habit[0], habit[1], habit[2], habit[3], habit[4], habit[5], habit[6]))
+
+        return habits
+    
+    def get_weekly_habits(self):
+        habits = []
+
+        query = "SELECT * FROM habit WHERE frequency = 'weekly'"
+        for habit in self.get_mutiple_rows_query(query):
+            habits.append(Habit(habit[0], habit[1], habit[2], habit[3], habit[4], habit[5], habit[6]))
+
+        return habits
 
     def add_habit(self, name, reward, times_needed, img, frequency):
         insert_query = "INSERT INTO habit (name, reward, times_completed, times_needed, img, frequency) VALUES (?,?,?,?,?,?)"
         return self.modify_db_query(insert_query, (name, reward, 0, times_needed, img, frequency)), self.get_last_row_id()
     
     def edit_habit(self, id, name, reward, times_completed, times_needed, img, frequency):
-        update_query = "UPDATE habit SET name = ?, SET reward = ?, SET times_completed = ?, SET times_needed = ?, SET img = ?, SET frequency = ? WHERE id = ?) VALUES (?,?,?,?,?,?)"
+        update_query = "UPDATE habit SET name = ?, SET reward = ?, SET times_completed = ?, SET times_needed = ?, SET img = ?, SET frequency = ? WHERE id = ?"
         return self.modify_db_query(update_query, (name, reward, times_completed, times_needed, img, frequency, id))
     
     def delete_habit(self, id):
         delete_query = "DELETE FROM habit WHERE id = ?"
         return self.modify_db_query(delete_query, (id,))
+    
+    def complete_habit(self, id):
+        update_query = "UPDATE habit SET times_completed = times_completed + 1 WHERE id = ?"
+        return self.modify_db_query(update_query, (id, ))
 
 #--------- STORE METHODS -----------

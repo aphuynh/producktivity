@@ -1,5 +1,6 @@
-import React, { Dispatch, FunctionComponent, SetStateAction, ChangeEvent, useState,FormEvent, ChangeEventHandler, useCallback, MouseEvent, useEffect } from 'react';
+import React, { Fragment, Dispatch, FunctionComponent, SetStateAction, ChangeEvent, useState, useCallback, MouseEvent, useEffect } from 'react';
 import {useForm} from "react-hook-form";
+import Config from "../../config.json"
 import "./EditTaskForm.css"
 
 import { ReactComponent as SearchIcon } from '../../assets/search.svg';
@@ -27,7 +28,7 @@ const EditTaskForm:FunctionComponent<EditTaskFormProps> = ({
     currentTask
 }) => {
 
-    const {register, getValues, handleSubmit, reset} = useForm();
+    const {register, getValues, reset} = useForm();
     
     const [listsFilter, setListsFilter] = useState("");
     const [taskListsArray, setTaskListsArray] = useState<Array<number>>(currentTask ? [...currentTask.lists] : []);
@@ -68,23 +69,24 @@ const EditTaskForm:FunctionComponent<EditTaskFormProps> = ({
 		parent_id: number | null,
         lists: Array<number>
 	) => {
-		let response = await fetch("/edit_task", {
-		method: 'POST',
-		body: JSON.stringify({
-            id: id,
-			name: name, 
-			description: description, 
-			reward: reward,
-			priority: priority,
-			type: "normal", 
-			due_date: due_date,
-			parent_id: parent_id,
-            lists: lists}),
-		headers: {
-		"Content-type": "application/json; charset=UTF-8"
-		}
+		let response = await fetch(Config.baseUrlProducktivityManager + "/edit_task", {
+            method: 'POST',
+            body: JSON.stringify({
+                id: id,
+                name: name, 
+                description: description, 
+                reward: reward,
+                priority: priority,
+                type: "normal", 
+                due_date: due_date,
+                parent_id: parent_id,
+                lists: lists}),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
 		});
 		response = await response.json();
+        return response;
 	}, [])
 
     const handleEditTask = () => {
@@ -186,11 +188,11 @@ const EditTaskForm:FunctionComponent<EditTaskFormProps> = ({
                 <select {...register("edit-parent-task")} id='edit-task-parent' value={parentTaskSelect} onChange={handleParentChange}>
                     <option value={""}>Select Parent Task</option>
                     {tasks.map((task, ind)=>(
-                        <>
+                        <Fragment key={"task-select-option-" + task.id}>
                         {task.id === currentTask.id ? "" :
-                        <TaskSelectOption taskInfo={task} level={0} key={"task-select-option-" + task.id}></TaskSelectOption>
+                        <TaskSelectOption taskInfo={task} level={0}></TaskSelectOption>
                         }
-                        </>
+                        </Fragment>
                     ))}
                 </select>
                 <div id='edit-task-form-row-3'>

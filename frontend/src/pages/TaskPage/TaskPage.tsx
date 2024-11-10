@@ -1,14 +1,15 @@
-import {useState, useEffect, useCallback, FunctionComponent, Dispatch, SetStateAction, ChangeEvent, useRef} from 'react'
+import {useState, useEffect, useCallback, FunctionComponent, Dispatch, SetStateAction} from 'react'
 import PageNotFound from '../PageNotFound/PageNotFound'
 import {Routes, Route} from "react-router-dom"
 import "./TaskPage.css"
-import TaskNavBar from '../../components/TaskNavBar/TaskNavBar'
+//import TaskNavBar from '../../components/TaskNavBar/TaskNavBar'
 import { TaskInterface } from '../../interfaces/Task'
 import MainTaskPage from './subTaskPages/MainTaskPage/MainTaskPage'
 import AddTaskForm from '../../components/TaskForm/AddTaskForm'
 import { ListInterface } from '../../interfaces/List'
 import ManageListsWindow from '../../components/ManageListsWindow/ManageListsWindow'
 import EditTaskForm from '../../components/TaskForm/EditTaskForm'
+import Config from "../../config.json"
 
 export interface TaskPageProps{
     closePageDisable: Dispatch<SetStateAction<void>>,
@@ -42,18 +43,18 @@ const TaskPage: FunctionComponent<TaskPageProps> = ({
 	const [openLists, setOpenLists] = useState<Array<number>>([]);
 
 	const getTasksInOrder = useCallback(async () => {
-        let response: any = await fetch("/tasks/ordered");
+        let response: any = await fetch(Config.baseUrlProducktivityManager + "/tasks/ordered");
             response = await response.json();
             setTasks(response as Array<TaskInterface>);
     }, [])
 
     const getTasks = useCallback(async () => {
-        let response: any = await fetch("/tasks/all");
+        let response: any = await fetch(Config.baseUrlProducktivityManager + "/tasks/all");
             response = await response.json();
             setTasksMap(new Map(Object.entries(response)));
     }, [])
 
-	const updateTaskInfo = () =>{
+	const updateTaskInfo = useCallback(() =>{
         if(currentTask){
             let oldID = currentTask.id;
             let new_task = tasksMap.get(oldID + "");
@@ -67,11 +68,11 @@ const TaskPage: FunctionComponent<TaskPageProps> = ({
                 setAllowParentSelectChange(true);
             }
         }
-    }
+    }, [currentTask, tasksMap])
 
     useEffect(()=>{
         updateTaskInfo();
-    }, [tasks, tasksMap])
+    }, [tasks, tasksMap, updateTaskInfo])
 
 
 	useEffect(() => {

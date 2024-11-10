@@ -1,5 +1,6 @@
-import React, { Dispatch, FunctionComponent, SetStateAction, ChangeEvent, useState,FormEvent, ChangeEventHandler, useCallback, MouseEvent } from 'react';
+import React, { Dispatch, FunctionComponent, SetStateAction, ChangeEvent, useState, useCallback, MouseEvent } from 'react';
 import {useForm} from "react-hook-form";
+import Config from "../../config.json"
 import "./AddTaskForm.css"
 
 import { ReactComponent as SearchIcon } from '../../assets/search.svg';
@@ -31,7 +32,7 @@ const AddTaskForm:FunctionComponent<AddTaskFormProps> = ({
     lists
 }) => {
 
-    const {register, getValues, handleSubmit, reset} = useForm();
+    const {register, getValues, reset} = useForm();
     
     const [listsFilter, setListsFilter] = useState("");
     const [taskListsArray, setTaskListsArray] = useState<Array<number>>([]);
@@ -72,29 +73,29 @@ const AddTaskForm:FunctionComponent<AddTaskFormProps> = ({
 		parent_id: number | null,
         lists: Array<number>
 	) => {
-		let response = await fetch("/add", {
-		method: 'POST',
-		body: JSON.stringify({
-			name: name, 
-			description: description, 
-			reward: reward,
-			priority: priority,
-			type: "normal", 
-			due_date: due_date,
-			parent_id: parent_id,
-            lists: lists}),
-		headers: {
-		"Content-type": "application/json; charset=UTF-8"
-		}
-		});
+		let response = await fetch(Config.baseUrlProducktivityManager + "/add", {
+            method: 'POST',
+            body: JSON.stringify({
+                name: name, 
+                description: description, 
+                reward: reward,
+                priority: priority,
+                type: "normal", 
+                due_date: due_date,
+                parent_id: parent_id,
+                lists: lists}),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+            });
 		response = await response.json();
+        return response;
 	}, [])
 
     const handleAddTask = () => {
         const task = getValues("name");
         const description = getValues("description");
         const parent_task = getValues("parent-task");
-        console.log(parent_task);
         const parent_id = parent_task === "" ? null : parseInt(parent_task);
         const priority = getValues("priority");
         const reward = getValues("reward");

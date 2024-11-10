@@ -1,0 +1,179 @@
+#notes-window{
+    display: flex;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: var(--off-white);
+    flex-direction: column;
+    overflow: hidden;
+    display: none;
+}
+
+#notes-window-top-bar{
+    width: 100%;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    color: var(--green);
+    flex-shrink: 0;
+    font-size: 1.2em;
+}
+
+#notes-window-back-button{
+    display: flex;
+    align-items: center;
+    column-gap: 2px;
+    padding: 0 8px 0 3px;
+    height: 70%;
+    border-radius: 5px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+#notes-window-note-title-information{
+    display:flex;
+    height: 70%;
+    padding: 5px;
+    align-items: center;
+    box-sizing: border-box;
+    column-gap: 10px;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+#notes-window-notes-title{
+    background: none;
+    padding: 0;
+    font-size: 1em;
+    color: var(--green);
+    width: 100%;
+    border: none;
+    text-align: end;
+}
+
+#notes-window-left-arrow-icon{
+    height: 15px;
+    width: auto;
+    flex-shrink: 0;
+    
+}   
+#notes-window-left-arrow-icon>path{
+    fill: var(--green);
+}   
+
+#notes-window-title-edit-icon{
+    height: 15px;
+    width: auto;
+    flex-shrink: 0;
+    stroke: var(--green);
+    
+}
+#notes-window-title-edit-icon>path{
+    fill: var(--green);
+}
+
+
+#notes-window-body{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    column-gap: 10px;
+    overflow: hidden;
+}
+
+#notes-window-body-left{
+    display:flex;
+    flex-direction: column;
+    width: 175px;
+    height: 100%;
+    flex-shrink: 0;
+    align-items: center;
+    overflow: hidden;
+    row-gap: 10px;
+}
+
+#notes-window-tags-section{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+#notes-window-tags-top-bar{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 25px;
+    border-bottom: 1px solid var(--gray);
+    color: var(--gray);
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+#notes-window-tags-wrapper{
+    display: flex;
+    padding: 10px 5px;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+#notes-window-tags-list{
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 5px;
+    width: 100%;
+}
+
+.notes-window-tag-bar{
+    background-color: var(--green);
+    color: var(--white);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px 10px;
+    height: 20px;
+    box-sizing: border-box;
+    font-size: .9em;
+}
+
+#notes-window-notes-actions{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 80px;
+    flex-shrink: 0;
+    row-gap: 10px;
+    width: 100%;
+}
+
+#notes-window-save-changes-button{
+    background-color: var(--light-green);
+}
+
+#notes-window-delete-note-button{
+    background-color: var(--red);
+}
+
+.notes-window-actions-buttons{
+    width: 100%;
+    height: 35px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--white);
+}
+
+
+#notes-window-body-right{
+    display: flex;
+    width: 100%;
+    height: 100%;
+}

@@ -1,8 +1,8 @@
-import React, { Dispatch, FunctionComponent, useCallback, useEffect, useState } from 'react'
+import React, { FunctionComponent, useCallback, useEffect, useState } from 'react'
+import Config from "../../config.json"
 import "./TopBar.css"
 
 import { ReactComponent as PawIcon } from '../../assets/paw.svg';
-import { ReactComponent as CarrotIcon } from '../../assets/carrot.svg';
 import { ReactComponent as UserIcon } from '../../assets/user.svg';
 
 interface TopBarProps{
@@ -16,7 +16,7 @@ const TopBar: FunctionComponent<TopBarProps> = ({
     const [username, setUsername] = useState("");
 
     const getUsername = useCallback(async () => {
-        let response = await fetch("/username");
+        let response = await fetch(Config.baseUrlProducktivityManager + "/username");
             response = await response.json();
             setUsername(response as unknown as string);
     }, [])

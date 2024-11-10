@@ -1,0 +1,75 @@
+#habits-page{
+    height:100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    position: relative;
+}
+
+
+.sub-habits-page{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    min-height: 0;
+    flex-shrink: 2;
+    justify-content: flex-start;
+    padding-bottom: 10px;
+}
+
+#habits-page-content{
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    flex-shrink: 1;
+    justify-content: flex-start;
+}
+
+#habits-bottom-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between  ;
+    align-items: flex-end;
+    height: 50px;
+    flex-shrink: 0;
+    column-gap: 5px;
+}
+
+#habits-search-bar{
+    display: flex;
+    flex-shrink: 1;
+    align-items: center;
+    padding-right: 3px;
+    column-gap: 2px;
+    box-sizing: border-box;
+    background-color: var(--white);
+    border-radius: 4px;
+    overflow: hidden;
+    height: 35px;
+    width: 300px;
+}
+
+#habits-search-icon{
+    height: 18px;
+    width: auto;
+    padding: 0 5px;
+}
+
+#habits-search-icon>g>path{
+    stroke: var(--gray);
+}
+
+#habits-search-input{
+    width:100%;
+    border: none;
+    box-sizing: border-box;
+    background-color: var(--white);
+    padding: 5px 2px 5px 10px;
+}

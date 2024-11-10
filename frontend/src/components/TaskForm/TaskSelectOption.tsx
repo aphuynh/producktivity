@@ -7,8 +7,6 @@ export interface TaskProps{
 }
 
 const TaskSelectOption: FunctionComponent<TaskProps> = ({taskInfo, level}) => {
-
-    const spacing = Array.from(Array(4 * level), () => '\u00A0');
     
     const returnSpaces = (level: number) =>{
         let indent = "";

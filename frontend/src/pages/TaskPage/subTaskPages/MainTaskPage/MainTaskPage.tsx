@@ -2,12 +2,11 @@ import {FunctionComponent, useState, useEffect, useCallback, MouseEvent, Dispatc
 import {TaskInterface} from '../../../../interfaces/Task.ts'
 import {ListInterface} from '../../../../interfaces/List.ts'
 import Task from '../../../../components/Task/Task.tsx'
+import Config from "../../../../config.json"
 import "./MainTaskPage.css"
 
 
-import { ReactComponent as GearIcon } from '../../../../assets/gear.svg';
 import { ReactComponent as AddIcon } from '../../../../assets/add-plus-square.svg';
-import { ReactComponent as SortDescIcon } from '../../../../assets/sort-descending.svg';
 import { ReactComponent as SortAscIcon } from '../../../../assets/sort-ascending.svg';
 import { ReactComponent as FilterIcon } from '../../../../assets/filter.svg';
 import { ReactComponent as PawIcon } from '../../../../assets/paw.svg';
@@ -18,7 +17,7 @@ import { ReactComponent as SearchIcon } from '../../../../assets/search.svg';
 
 
 import { parseDateTime, parseDate, parseTime} from '../../../../utils/parseTime.tsx';
-import Alert from '../../../../components/Alert/Alert.tsx'
+import DeleteAlert from '../../../../components/Alert/DeleteAlert.tsx'
 
 
 interface MainTaskPageProps{
@@ -166,37 +165,40 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
     }
 
     const completeTask = useCallback(async (id: number) => {
-        let response = await fetch("/complete/" + id);
+        let response = await fetch(Config.baseUrlProducktivityManager + "/complete/" + id);
             response = await response.json();
+            return response;
     }, [])
 
     const undoCompleteTask = useCallback(async (id: number) => {
-        let response = await fetch("/undo_complete/" + id);
+        let response = await fetch(Config.baseUrlProducktivityManager + "/undo_complete/" + id);
             response = await response.json();
-            console.log(response);
+            return response;
     }, [])
 
     const updateWallet = useCallback(async (amount: number) => {
-		let response = await fetch("/update_wallet", {
-		method: 'POST',
-		body: JSON.stringify({
-			transaction_amount: amount}),
-		headers: {
-		"Content-type": "application/json; charset=UTF-8"
-		}
+		let response = await fetch(Config.baseUrlProducktivityManager + "/update_wallet", {
+            method: 'POST',
+            body: JSON.stringify({
+                transaction_amount: amount
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
 		});
 		response = await response.json();
+        return response;
 	}, [])
 
     const removeTask = useCallback(async (id: number) => {
         console.log(id)
-        let response = await fetch("/remove/" + id);
+        let response = await fetch(Config.baseUrlProducktivityManager + "/remove/" + id);
             response = await response.json();
             console.log(response);
     }, [])
 
     const getListTaskMap = useCallback(async () => {
-        let response: any = await fetch("/list_task_map");
+        let response: any = await fetch(Config.baseUrlProducktivityManager + "/list_task_map");
             response = await response.json();
             let tempMap = new Map<number, number[]>();
             let entries = Object.entries(response);
@@ -209,7 +211,7 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
     }, [])
 
     const addList = useCallback(async (name: string) => {
-        let response = await fetch("/add_list/" + name);
+        let response = await fetch(Config.baseUrlProducktivityManager + "/add_list/" + name);
             response = await response.json();
             return(response);
     }, [])
@@ -296,7 +298,7 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
             (document.getElementById("new-list-input")! as HTMLInputElement).setAttribute("data-valid", "true")
         }
         
-    }, [addList, getLists, openLists])
+    }, [addList, getLists, openLists, setOpenLists])
 
     const closeNewListTab = () => {
         let tab = document.getElementById("new-task-tab")!;
@@ -441,11 +443,11 @@ const MainTaskPage: FunctionComponent<MainTaskPageProps> = ({
     useEffect(() => {
         getTasks();
         getTasksInOrder();
-    }, [taskToRemove])
+    }, [taskToRemove, getTasks, getTasksInOrder])
 
     return (
         <div id='main-tasks-page'>
-            <Alert
+            <DeleteAlert
                 message={alertMessage} 
                 confirmAction={removeTask} 
                 idToRemove={taskToRemove} 

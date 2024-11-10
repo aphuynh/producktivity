@@ -1,8 +1,10 @@
-from flask import Flask, redirect, url_for, request
+from flask import Flask, request
+from flask_cors import CORS
 from ProducktivityManager import ProducktivityManager
 import json
 
 app = Flask(__name__)
+CORS(app)
 task_manager = ProducktivityManager()
 
 # Task Methods
@@ -104,6 +106,12 @@ def add_checklist(name):
     result, id = task_manager.add_checklist(name)
     return json.dumps((result, id))
 
+@app.route("/edit_checklist/<id>/<name>")
+def edit_checklist(id, name):
+    result = task_manager.edit_checklist(id, name)
+    print(result)
+    return json.dumps(1 if result > 0 else 0)
+
 @app.route("/remove_checklist/<id>")
 def remove_checklist(id):
     result = task_manager.remove_checklist(id)
@@ -148,6 +156,16 @@ def get_habits():
     habits = task_manager.get_habits()
     return json.dumps(habits, default=lambda x: x.__dict__)
 
+@app.route("/habits/daily")
+def get_daily_habits():
+    habits = task_manager.get_daily_habits()
+    return json.dumps(habits, default=lambda x: x.__dict__)
+
+@app.route("/habits/weekly")
+def get_weekly_habits():
+    habits = task_manager.get_weekly_habits()
+    return json.dumps(habits, default=lambda x: x.__dict__)
+
 @app.route("/add_habit", methods =["POST", "GET"])
 def add_habit():
     result = 0
@@ -168,6 +186,11 @@ def edit_habit():
 @app.route("/delete_habit/<id>")
 def delete_habit(id):
     result = task_manager.delete_habit(id)
+    return json.dumps(1 if result else 0)
+
+@app.route("/complete_habit/<id>")
+def complete_habit(id):
+    result = task_manager.complete_habit(id)
     return json.dumps(1 if result else 0)
 
 # Account Methods

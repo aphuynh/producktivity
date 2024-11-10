@@ -2,7 +2,7 @@ import React, { Dispatch, FunctionComponent, SetStateAction } from 'react'
 
 import "./Alert.css"
 
-interface AlertProps{
+interface DeleteAlertProps{
     message: string,
     confirmAction: (id: number) => void,
     idToRemove: number,
@@ -10,7 +10,7 @@ interface AlertProps{
     type: string
 }
 
-const Alert: FunctionComponent<AlertProps> = ({
+const DeleteAlert: FunctionComponent<DeleteAlertProps> = ({
     message, 
     confirmAction, 
     idToRemove, 
@@ -41,4 +41,4 @@ const Alert: FunctionComponent<AlertProps> = ({
     )
 }
 
-export default Alert
+export default DeleteAlert

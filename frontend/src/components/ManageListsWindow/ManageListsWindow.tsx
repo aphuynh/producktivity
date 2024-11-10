@@ -1,11 +1,12 @@
-import React, { ChangeEvent, Dispatch, FocusEvent, FocusEventHandler, FunctionComponent, KeyboardEvent, MouseEvent, SetStateAction, useCallback, useEffect, useState } from 'react'
+import React, { ChangeEvent, Dispatch, FocusEvent, FunctionComponent, KeyboardEvent, MouseEvent, SetStateAction, useCallback, useEffect, useState } from 'react'
+import Config from "../../config.json"
 import "./ManageListsWindow.css"
 import { ListInterface } from '../../interfaces/List'
 
 import { ReactComponent as SearchIcon } from '../../assets/search.svg';
 import { ReactComponent as TrashIcon } from '../../assets/trash.svg';
 import { ReactComponent as EditIcon } from '../../assets/edit.svg';
-import Alert from '../Alert/Alert';
+import DeleteAlert from '../Alert/DeleteAlert';
 
 interface ManageListsWindowProps {
     lists: Array<ListInterface>,
@@ -29,7 +30,6 @@ const ManageListsWindow: FunctionComponent<ManageListsWindowProps> = ({
 }) => {
 
     const [listsFilter, setListsFilter] = useState("");
-    const [listsToRename, setListsToRename] = useState<Map<number, string>>(new Map());
     const alertMessage = "Are you sure you want to delete this list? This action cannot be undone."
     const [listToRemove, setListToRemove] = useState(-1); 
 
@@ -62,6 +62,8 @@ const ManageListsWindow: FunctionComponent<ManageListsWindowProps> = ({
             e.currentTarget.disabled = true;
             e.currentTarget.blur();
         }
+
+        getLists();
     }
 
     const handleRemoveList = (e: MouseEvent<SVGSVGElement>) =>{
@@ -78,7 +80,7 @@ const ManageListsWindow: FunctionComponent<ManageListsWindowProps> = ({
     }
 
     const renameList = useCallback(async (id: number, name: string) => {
-        let response = await fetch("/rename_list", {
+        let response = await fetch(Config.baseUrlProducktivityManager + "/rename_list", {
             method: 'POST',
             body: JSON.stringify({
                 name: name, 
@@ -88,7 +90,7 @@ const ManageListsWindow: FunctionComponent<ManageListsWindowProps> = ({
             }
             });
             response = await response.json();
-            getLists();
+            return response;
     }, [])
 
     const removeListHelper = (id: number) => {
@@ -97,7 +99,7 @@ const ManageListsWindow: FunctionComponent<ManageListsWindowProps> = ({
     }
 
     const removeList = useCallback(async (id: number) => {
-        let response = await fetch("/remove_list/" + id);
+        let response = await fetch(Config.baseUrlProducktivityManager + "/remove_list/" + id);
             response = await response.json();
             return(response);
     }, [])
@@ -115,11 +117,11 @@ const ManageListsWindow: FunctionComponent<ManageListsWindowProps> = ({
 
     useEffect(() => {
         getLists();
-    }, [listToRemove])
+    }, [listToRemove, getLists])
 
     return (
         <>
-        <Alert
+        <DeleteAlert
                 message={alertMessage} 
                 confirmAction={removeListHelper} 
                 idToRemove={listToRemove}
