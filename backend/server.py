@@ -171,8 +171,8 @@ def add_habit():
     result = 0
     if request.method == 'POST':
         data = request.get_json()
-        habit_id = task_manager.add_habit(data['name'], data['reward'], data['times_needed'], data['img'], data['frequency'])
-
+        result, habit_id = task_manager.add_habit(data['name'], data['reward'], data['times_needed'], data['img'], data['frequency'])
+        print(habit_id)
     return json.dumps(habit_id if result else -1)
 
 @app.route("/edit_habit", methods = ["POST", "GET"])
@@ -193,6 +193,194 @@ def complete_habit(id):
     result = task_manager.complete_habit(id)
     return json.dumps(1 if result else 0)
 
+# Notes  Methods
+
+@app.route("/notes/list")
+def get_notes_list():
+    notes = task_manager.get_notes_list()
+    return json.dumps(notes, default=lambda x: x.__dict__)
+
+@app.route("/notes/all")
+def get_all_notes():
+    tasks = task_manager.get_tasks_all()
+    return json.dumps(tasks, default=lambda x: x.__dict__)
+
+@app.route("/add_note", methods = ["POST", "GET"])
+def add_note():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result, note_id = task_manager.add_note(data['name'], data['body'], data['date_created'], data['date_modified'])
+
+        """
+        if task_id != -1:
+            result = task_manager.apply_lists_to_task(task_id, data['lists'])
+        """
+    return json.dumps(note_id if result else -1)
+
+@app.route("/edit_note", methods = ["POST", "GET"])
+def edit_note():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result = task_manager.edit_note(data['id'], data['name'], data['body'], data['date_created'], data['date_modified'])
+        """
+        if result:
+            result = task_manager.apply_lists_to_task(data['id'], data['lists'])
+        """
+    return json.dumps(1 if result else 0)   
+
+@app.route("/delete_note/<id>")
+def delete_note(id):
+    result = task_manager.delete_note(id)
+    return json.dumps(1 if result else 0)
+
+@app.route("/tags")
+def get_tags():
+    tags = task_manager.get_tags()
+    return json.dumps(tags, default=lambda x: x.__dict__)
+
+@app.route("/add_tag/<name>")
+def add_tag(name):
+    result, id = task_manager.add_tag(name)
+    return json.dumps((result, id))
+
+@app.route("/remove_tag/<id>")
+def remove_tag(id):
+    result = task_manager.remove_tag(id)
+    return json.dumps(1 if result else 0)
+
+@app.route("/rename_tag", methods = ["POST", "GET"])
+def rename_tag():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result = task_manager.rename_tag(data['id'], data['name']);
+
+    return json.dumps(1 if result else 0)
+
+# Event Methods
+
+@app.route("/calendar_events", methods = ["POST", "GET"])
+def get_calendar_events():
+    events = []
+    if request.method == 'POST':
+        data = request.get_json()
+        events = task_manager.get_events(data['date_start'], data['date_end'])
+
+    return json.dumps(events, default=lambda x: x.__dict__)
+
+@app.route("/calendar_event_types")
+def get_calendar_event_types():
+    types = task_manager.get_event_types()
+    return json.dumps(types, default=lambda x: x.__dict__)
+
+@app.route("/calendar_event_groups")
+def get_calendar_event_groups():
+    groups = task_manager.get_event_groups()
+    return json.dumps(groups, default=lambda x: x.__dict__)
+
+@app.route("/add_calendar_event", methods = ["POST", "GET"])
+def add_calendar_event():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result, event_id = task_manager.add_event(
+            data["group_id"],
+            data["event_type"],
+            data["title"],
+            data["all_day"],
+            data["start"],
+            data["end"],
+            data["rrule"],
+            data["url"],
+            data["editable"],
+            data["extended_props"]
+        )
+
+    return json.dumps(event_id if result else -1)
+
+@app.route("/edit_calendar_event", methods = ["POST", "GET"])
+def edit_calendar_event():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result = task_manager.edit_event(
+            data["id"],
+            data["group_id"],
+            data["event_type"],
+            data["title"],
+            data["all_day"],
+            data["start"],
+            data["end"],
+            data["rrule"],
+            data["url"],
+            data["editable"],
+            data["extended_props"]
+        )
+
+    return json.dumps(1 if result else 0)
+
+@app.route("/remove_calendar_event/<id>")
+def remove_calendar_event(id):
+    result = task_manager.remove_event(id)
+    return json.dumps(1 if result else 0)
+
+@app.route("/add_calendar_event_group/<name>")
+def add_calendar_event_group(name):
+    result, group_id = task_manager.add_event_group(name)
+
+    return json.dumps(group_id if result else -1)
+
+@app.route("/edit_calendar_event_group", methods = ["POST", "GET"])
+def edit_calendar_event_group():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result = task_manager.edit_event_group(
+            data["id"],
+            data["name"]
+        )
+
+    return json.dumps(1 if result else 0)
+
+@app.route("/remove_calendar_event_group/<id>")
+def remove_calendar_event_group(id):
+    result = task_manager.remove_event_group(id)
+    return json.dumps(1 if result else 0)
+
+@app.route("/add_calendar_event_type", methods = ["POST", "GET"])
+def add_calendar_event_type():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result, event_type_id = task_manager.add_event_type(
+            data["name"],
+            data["color"],
+            data["background_color"]
+        )
+
+    return json.dumps(event_type_id if result else -1)
+
+@app.route("/edit_calendar_event_type", methods = ["POST", "GET"])
+def edit_calendar_event_type():
+    result = 0
+    if request.method == 'POST':
+        data = request.get_json()
+        result = task_manager.edit_event_type(
+            data["id"],
+            data["name"],
+            data["color"],
+            data["background_color"]
+        )
+
+    return json.dumps(1 if result else 0)
+
+@app.route("/remove_calendar_event_type/<id>")
+def remove_calendar_event_type(id):
+    result = task_manager.remove_event_type(id)
+    return json.dumps(1 if result else 0)
+
 # Account Methods
 
 @app.route("/username")
@@ -211,6 +399,13 @@ def update_wallet():
         result = task_manager.update_wallet(data['transaction_amount'])
 
     return json.dumps(1 if result else 0)
+
+
+# Settings Methods 
+
+@app.route("/show_tasks_calendar")
+def get_show_tasks_on_calendar():
+    return json.dumps(task_manager.get_show_tasks_calendar())
 
 if __name__ == "__main__":
     app.run(port=5001, debug=True)

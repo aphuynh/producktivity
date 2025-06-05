@@ -6,6 +6,12 @@ from List import List
 from Checklist import Checklist
 from ChecklistItem import ChecklistItem
 from Habit import Habit
+from Note import Note, NoteInfo
+from Tag import Tag
+from Event import Event
+from EventType import EventType
+from EventGroup import EventGroup
+import json
 
 class ProducktivityManager:
 
@@ -16,6 +22,7 @@ class ProducktivityManager:
         self.db.execute("PRAGMA foreign_keys = 1")
         self.cursor = self.db.cursor()
         self.lock = threading.Lock()
+        self.reset = False
 
         self.initialize_database()
 
@@ -36,15 +43,25 @@ class ProducktivityManager:
             self.lock.release()
 
 
-        if tables == 0:
+        if self.reset or tables == 0:
             #create user_info table
             print("user_info not found, creating table... ")
-            create_user_info_commands = ["CREATE TABLE IF NOT EXISTS user_info(key TEXT PRIMARY KEY, value TEXT)",
-                                          "INSERT OR IGNORE INTO user_info VALUES ('username', 'Jellycat')",
-                                          "INSERT OR IGNORE INTO user_info VALUES ('wallet', 0)",
-                                          "INSERT OR IGNORE INTO user_info VALUES ('experience', 0)"
-                                          ]
+
+            create_user_info_commands = [
+                "CREATE TABLE IF NOT EXISTS user_info(key TEXT PRIMARY KEY, value TEXT)",
+                "INSERT OR IGNORE INTO user_info VALUES ('username', 'Jellycat')",
+                "INSERT OR IGNORE INTO user_info VALUES ('wallet', 0)",
+                "INSERT OR IGNORE INTO user_info VALUES ('experience', 0)"
+            ]
+
             for command in create_user_info_commands:
+                self.modify_db_query(command)
+
+            create_settings_command = [
+                "CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value BOOLEAN);",
+                "INSERT OR IGNORE INTO settings VALUES ('show_tasks_on_calendar', 'true')"
+            ]
+            for command in create_settings_command:
                 self.modify_db_query(command)
 
             create_task_command = """CREATE TABLE IF NOT EXISTS task(
@@ -79,12 +96,66 @@ class ProducktivityManager:
 
             create_habit_command = """CREATE TABLE IF NOT EXISTS habit(
                                         id INTEGER PRIMARY KEY,
-                                        name TEXT UNIQUE NOT NULL,
+                                        name TEXT NOT NULL,
                                         reward INTEGER NOT NULL,
                                         times_completed INTEGER NOT NULL,
                                         times_needed INTEGER NOT NULL,
                                         img TEXT,
-                                        frequency INTEGER NOT NULL);"""
+                                        frequency TEXT NOT NULL);"""
+            
+            create_note_command = """CREATE TABLE IF NOT EXISTS note(
+                                        id INTEGER PRIMARY KEY,
+                                        name TEXT NOT NULL,
+                                        body TEXT,
+                                        date_created DATETIME NOT NULL,
+                                        date_modified DATETIME NOT NULL
+                                    );"""
+            
+            create_tag_command = """CREATE TABLE IF NOT EXISTS tag(
+                                        id INTEGER PRIMARY KEY,
+                                        name TEXT UNIQUE NOT NULL
+                                    );"""
+            
+            create_note_tag_command = """CREATE TABLE IF NOT EXISTS note_tag(
+                                            note_id INTEGER,
+                                            tag_id INTEGER,
+                                            PRIMARY KEY (note_id, tag_id),
+                                            FOREIGN KEY (note_id) REFERENCES note(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                                            FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE ON UPDATE CASCADE
+                                        );	"""
+            
+            create_calendar_event_type_commands = ["CREATE TABLE IF NOT EXISTS calendar_event_type(id INTEGER PRIMARY KEY, name TEXT, color TEXT, background_color TEXT)",
+                                          "INSERT OR IGNORE INTO calendar_event_type(name, color, background_color) VALUES ('Birthday', '#ffaddd', '#ffffff')",
+                                          "INSERT OR IGNORE INTO calendar_event_type(name, color, background_color) VALUES ('Task', '#2977ff', '#ffffff')",
+                                          "INSERT OR IGNORE INTO calendar_event_type(name, color, background_color) VALUES ('Holiday', '#c37aff', '#ffffff')",
+                                          "INSERT OR IGNORE INTO calendar_event_type(name, color, background_color) VALUES ('Meeting', '#eb3434', '#ffffff')",
+                                          "INSERT OR IGNORE INTO calendar_event_type(name, color, background_color) VALUES ('Event', '#82cc62', '#ffffff')",
+                                          ]
+
+            create_calendar_event_group_command = """
+                CREATE TABLE IF NOT EXISTS calendar_event_group(
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL UNIQUE
+                );
+            """
+            
+            create_calendar_event_command = """
+                CREATE TABLE IF NOT EXISTS calendar_event(
+                    id INTEGER PRIMARY KEY,
+                    group_id INTEGER,
+                    title TEXT NOT NULL,
+                    all_day BOOLEAN,
+                    start INTEGER,
+                    end INTEGER,
+                    rrule TEXT,
+                    url TEXT,
+                    editable BOOLEAN,
+                    extended_props TEXT,
+                    FOREIGN KEY (group_id) REFERENCES calendar_event_group(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    FOREIGN KEY (event_type_id) REFERENCES calendar_event_type(id) ON DELETE CASCADE ON UPDATE CASCADE
+                );
+            """
+            
 
             self.modify_db_query(create_task_command)
             self.modify_db_query(create_list_command)
@@ -92,7 +163,15 @@ class ProducktivityManager:
 
             self.modify_db_query(create_checklist_command)
             self.modify_db_query(create_checklist_item_command)
-            self.modify_db_query(create_habit_command)            
+
+            self.modify_db_query(create_habit_command)    
+
+            self.modify_db_query(create_note_command)
+            self.modify_db_query(create_tag_command)
+            self.modify_db_query(create_note_tag_command)   
+    
+            self.modify_db_query(create_calendar_event_group_command)
+            self.modify_db_query(create_calendar_event_command)
 
 # --------- TESTING -----------
 
@@ -121,7 +200,7 @@ class ProducktivityManager:
         insert_habits_query = """INSERT OR IGNORE INTO habit(name, reward, times_completed, times_needed, img, frequency) 
                         VALUES (?,?,?,?,?,?)"""
                 
-        task_params = [("Drink Water", 2, 0, 6, "", "daily"),
+        habit_params = [("Drink Water", 2, 0, 6, "", "daily"),
                   ("Crochet a Project", 5, 0, 1, "", "weekly"),
                   ("Leetcode", 3, 0, 4, "", "daily"),
                   ("Tennis", 5, 0, 1, "", "weekly"),
@@ -131,8 +210,61 @@ class ProducktivityManager:
                   ("Maple Dailies", 1, 0, 3, "", "daily"),
                   ("Genshin Dailies", 1, 0, 2, "", "daily")]
         
-        for param in task_params:
+        for param in habit_params:
             self.modify_db_query(insert_habits_query, param)
+
+    def insert_test_notes(self):
+        insert_notes_query = """INSERT OR IGNORE INTO note(name, body, date_created, date_modified) 
+                        VALUES (?,?,?,?)"""
+        now = datetime.datetime.now()        
+        
+        notes_params = [("Raccoon Crochet Pattern", "", now, now),
+                  ("Periodic Table of Elements Lyrics", "", now, now),
+                  ("Journal Entry #1", "", now, now),
+                  ("CS123 Notes", "", now, now),
+                  ("Git Commands", "", now, now),
+                  ("Tepetlisaur Crochet PAttern - IP", "", now, now),
+                  ("Minecraft Server Set Up", "", now, now)]
+        
+        for param in notes_params:
+            self.modify_db_query(insert_notes_query, param)
+
+    def insert_test_events(self):
+        insert_event_group_query = """INSERT OR IGNORE INTO calendar_event_group(name) VALUES ("Group1")"""
+        self.modify_db_query(insert_event_group_query)
+
+        insert_events_query = """
+            INSERT OR IGNORE INTO calendar_event(
+                group_id,
+                title,
+                all_day,
+                start,
+                end,
+                rrule,
+                url,
+                editable,
+                extended_props
+            ) 
+            VALUES (?,?,?,?,?,?,?,?,?)"""      
+        
+        notes_params = [
+            (None, "Boop's BDAY :)", True, None, None, json.dumps({'freq': 'yearly', 'dtstart':'2001-01-20','until': '2999-01-20'}), None, True, None),
+            (None, "All Day Event", None, 1740787200000, None, None, None, True, None),
+            (None, "Long Event", None, 1741305600000, 1741564800000, None, None, True, None),
+            (1, "Grouped Event", None, 1741561200000, None, None, None, True, None),
+            (1, "Grouped Event", None, 1742166000000, None, None, None, True, None),
+            (None, "Conference", None, 1741651200000, 1741824000000, None, None, True, None),
+            (None, "Meeting", None, 1741800600000, 1741807800000, None, None, True, None),
+            (None, "Lunch", None, 1741806000000, None, None, None, True, None),
+            (None, "Meeting", None, 1741815000000, None, None, None, True, None),
+            (None, "Happy Hour", None, 1741825800000, None, None, None, True, None),
+            (None, "Dinner", None, 1741834800000, None, None, None, True, None),
+            (None, "Birthday Party", None, 1741874400000, None, None, None, True, None),
+            (None, "Click for Google", None, 1743120000000, None, None, "http://google.com/", True, None),
+        ]
+        
+        for param in notes_params:
+            self.modify_db_query(insert_events_query, param)
 
 
 # --------- GENERAL -----------
@@ -284,6 +416,10 @@ class ProducktivityManager:
         update_query = "UPDATE user_info SET value = ? WHERE key = 'wallet'"
         return self.modify_db_query(update_query, (updated_balance,))
 
+    def get_show_tasks_calendar(self):
+        select_query = "SELECT VALUE FROM settings WHERE KEY = 'show_tasks_on_calendar'"
+        return bool(self.get_single_row_query(select_query))
+
     def complete_task(self, task_id):
         complete_query = ("UPDATE task SET is_completed = true, complete_date = ? WHERE id = ?")
         return self.modify_db_query(complete_query, (datetime.datetime.now(), task_id))
@@ -428,7 +564,7 @@ class ProducktivityManager:
         return self.modify_db_query(insert_query, (name, reward, 0, times_needed, img, frequency)), self.get_last_row_id()
     
     def edit_habit(self, id, name, reward, times_completed, times_needed, img, frequency):
-        update_query = "UPDATE habit SET name = ?, SET reward = ?, SET times_completed = ?, SET times_needed = ?, SET img = ?, SET frequency = ? WHERE id = ?"
+        update_query = "UPDATE habit SET name = ?, reward = ?, times_completed = ?, times_needed = ?, img = ?, frequency = ? WHERE id = ?"
         return self.modify_db_query(update_query, (name, reward, times_completed, times_needed, img, frequency, id))
     
     def delete_habit(self, id):
@@ -438,5 +574,247 @@ class ProducktivityManager:
     def complete_habit(self, id):
         update_query = "UPDATE habit SET times_completed = times_completed + 1 WHERE id = ?"
         return self.modify_db_query(update_query, (id, ))
+    
+#--------- NOTE METHODS -----------
+
+    def get_all_notes(self):
+        notes = []
+
+        query = "SELECT * FROM note"
+        for note in self.get_mutiple_rows_query(query):
+            notes.append(Note(note[0], note[1], note[2], note[3], note[4]))
+
+        return notes
+
+    def get_notes_list(self):
+        notes = []
+
+        query = "SELECT id, name, date_created, date_modified FROM note"
+        for note in self.get_mutiple_rows_query(query):
+            notes.append(NoteInfo(note[0], note[1], note[2], note[3]))
+
+        return notes
+    
+    
+    def get_notes_list_associated_with_tags(self, tags):
+        notes = []
+        select_query = "SELECT id, name, date_created, date_modified FROM note, note_tag WHERE "
+    
+    def get_note(self, id):
+        query = "SELECT * FROM note WHERE id = ?"
+        note = self.get_single_row_query(query, (id, ))
+        return note
+
+    def add_note(self, name, body, date_created, date_modified):
+        insert_query = "INSERT INTO note (name, body, date_created, date_modified) VALUES (?,?,?,?)"
+        return self.modify_db_query(insert_query, (name, body, date_created, date_modified)), self.get_last_row_id()
+    
+    def apply_tags_to_note(self, note_id, tags):
+        rows = 0
+        
+        delete_query = ("DELETE FROM note_tag WHERE note_id = ?")
+        self.modify_db_query(delete_query, (note_id,))
+
+        insert_query = ("INSERT INTO note_tag(note_id, tag_id) VALUES (?, ?)")
+        for tag in tags:
+            rows += self.modify_db_query(insert_query, (note_id, tag))
+
+        return 1 if rows > 0 else 0
+    
+    def edit_note(self, id, name, body, date_created, date_modified):
+        update_query = "UPDATE note SET name = ?, body = ?, date_created = ?, date_modified = ? WHERE id = ?"
+        return self.modify_db_query(update_query, (name, body, date_created, date_modified, id))
+    
+    def delete_note(self, id):
+        delete_query = "DELETE FROM note WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+    
+    def apply_tags_to_notes(self, note_id, tags):
+        rows = 0
+        
+        delete_query = ("DELETE FROM note_tag WHERE note_id = ?")
+        self.modify_db_query(delete_query, (note_id,))
+
+        insert_query = ("INSERT INTO note_tag(note_id, tag_id) VALUES (?, ?)")
+        for tag in tags:
+            rows += self.modify_db_query(insert_query, (note_id, tag))
+
+        return 1 if rows > 0 else 0
+    
+    def get_tags(self):
+        tags = []
+        select_query = "SELECT * FROM tag"
+        for tag in self.get_mutiple_rows_query(select_query):
+            tags.append(Tag(tag[0], tag[1]))
+        return tags
+    
+    def add_tag(self, name):
+        insert_query = "INSERT INTO tag (name) VALUES (?)"
+        return self.modify_db_query(insert_query, (name, )), self.get_last_row_id()
+    
+    def remove_tag(self, id):
+        delete_query = "DELETE FROM tag WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+    
+    def rename_tag(self, id, name):
+        update_query = "UPDATE tag SET name = ? WHERE id = ?"
+        return self.modify_db_query(update_query, (name, id))
+    
+    def get_tags_associated_with_note(self, note_id):
+        tags = []
+        select_query = "SELECT tag_id FROM note_tag WHERE note_id = ? ORDER BY tag_id"
+        for tag_id in self.get_mutiple_rows_query(select_query, (note_id, )):
+            tags.append(tag_id[0])
+
+        return tags
+    
+#--------- CALENDAR METHODS -----------
+
+    def get_event_types(self):
+        types = []
+        select_query = "SELECT * FROM calendar_event_type"
+        for event_type in self.get_mutiple_rows_query(select_query):
+            types.append(EventType(event_type[0], event_type[1], event_type[2], event_type[3]))
+        return types
+    
+    def get_event_groups(self):
+        groups = []
+        select_query = "SELECT * FROM calendar_event_group"
+        for event_group in self.get_mutiple_rows_query(select_query):
+            groups.append(EventGroup(event_group[0], event_group[1]))
+        return groups
+    
+    def get_events(self, date_start, date_end):
+        events = []
+        select_query = "SELECT * FROM calendar_event WHERE (start BETWEEN ? AND ?) OR (end BETWEEN ? AND ?) OR rrule IS NOT NULL"
+        for event_type in self.get_mutiple_rows_query(select_query, (date_start, date_end, date_start, date_end)):
+            events.append(Event(
+                event_type[0], 
+                event_type[1], 
+                event_type[2], 
+                event_type[3],
+                event_type[4], 
+                event_type[5], 
+                event_type[6], 
+                event_type[7],
+                event_type[8], 
+                event_type[9],
+                event_type[10]
+            ))
+        return events
+    
+    def edit_event(
+        self,
+        id,
+        group_id,
+        event_type_id,
+        title,
+        all_day,
+        start,
+        end,
+        rrule,
+        url,
+        editable,
+        extended_props
+    ):  
+        update_query = """
+            UPDATE calendar_event 
+                SET 
+                    group_id = ?,
+                    event_type_id = ?,
+                    title = ?,
+                    all_day = ?,
+                    start = ?,
+                    end = ?,
+                    rrule = ?,
+                    url = ?,
+                    editable = ?,
+                    extended_props = ?
+                WHERE id = ?"""
+        return self.modify_db_query(
+            update_query, 
+            (
+                group_id,
+                event_type_id,
+                title,
+                all_day,
+                start,
+                end,
+                rrule,
+                url,
+                editable,
+                extended_props, 
+                id
+            )
+        )
+    
+
+    def add_event(
+        self,
+        group_id,
+        title,
+        all_day,
+        start,
+        end,
+        rrule,
+        url,
+        editable,
+        extended_props
+    ):  
+        update_query = """
+            INSERT INTO calendar_event(
+                group_id
+                title,
+                all_day,
+                start,
+                end,
+                rrule,
+                url,
+                editable,
+                extended_props
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        
+        return (self.modify_db_query(
+            update_query, 
+            (
+                group_id,
+                title,
+                all_day,
+                start,
+                end,
+                rrule,
+                url,
+                editable,
+                extended_props
+            )
+        ), self.get_last_row_id())
+    
+    def remove_event(self, id):
+        delete_query = "DELETE FROM calendar_event WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+    
+    def add_event_type(self, name, color, background_color):
+        insert_query = "INSERT OR IGNORE INTO calendar_event_type(name, color, background_color) VALUES (?, ?, ?)"
+        return (self.modify_db_query(insert_query, (name, color, background_color)), self.get_last_row_id())
+    
+    def remove_event_type(self, id):
+        delete_query = "DELETE FROM calendar_event_type WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+
+    def edit_event_type(self, id, name, color, background_color):
+        update_query = "UPDATE calendar_event_type SET name = ?, color = ?, background_color = ? WHERE id = ?"
+        return self.modify_db_query(update_query, (name, color, background_color, id))
+    
+    def add_event_group(self, name):
+        insert_query = "INSERT OR IGNORE INTO calendar_event_group(name) VALUES (?)"
+        return (self.modify_db_query(insert_query, (name, )), self.get_last_row_id())
+    
+    def remove_event_group(self, id):
+        delete_query = "DELETE FROM calendar_event_group WHERE id = ?"
+        return self.modify_db_query(delete_query, (id,))
+
+    def edit_event_group(self, id, name):
+        update_query = "UPDATE calendar_event_group SET name = ? WHERE id = ?"
+        return self.modify_db_query(update_query, (name, id))
 
 #--------- STORE METHODS -----------

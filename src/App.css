@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css?family=Itim');
+
+:root{
+	--off-white: #EAE7E2;
+	--white: #FFFFFF;
+	--black: #000000;
+	--gray: #777777;
+	--gray-active: #666666;
+	--gray-hover: #999999;
+	--light-gray-active: #AAAAAA;
+	--light-gray-hover: #BFBFBF;
+	--light-gray: #D9D9D9;
+	--dark-brown: #2F1D1A;
+	--light-green: #B4D9AD;
+	--light-green-hover: #C4E9BD;
+	--light-green-active: #A9CEA3;
+	--light-green-complete: #ABFF9E;
+	--green: #58AD14;
+	--green-active: #71c92a;
+	--red-hover: #FA978E;
+	--red: #EA775E;
+	--red-active: #DA674E;
+  	--yellow: #E8BE2A;
+
+	--shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+*{
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+[contentEditable=true]:empty:not(:focus):before {
+	content: attr(data-text);
+	color: var(--gray);
+}
+
+.app-page{
+	height: 100vh;
+	width: 100vw;
+	padding: 0;
+	margin: 0;
+	overscroll-behavior: none;
+	overflow: hidden;
+	display: grid;
+	grid-template-columns: 60px 90px calc(100% - 60px - 90px);
+	grid-template-rows: 40px calc(100% - 40px);
+	background-color: #EAE7E2;
+	font-family: "Itim";
+	color: var(--dark-brown);
+}
+
+button, input, select, textarea{
+	font-family: "Itim";
+	color: #2F1D1A;
+}
+
+select::after{
+	color: #2F1D1A;
+}
+
+input, textarea, select{
+	border: none;
+	border-bottom: 1px solid var(--gray);
+	box-sizing: border-box;
+	padding: 5px 10px;
+}
+
+:focus{
+	outline: none;
+	background-color: var(--light-green-hover);
+	cursor: text;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+::-webkit-scrollbar{
+    width: 10px;
+}
+
+::-webkit-scrollbar-track{
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb{
+    background: var(--light-green);
+    border-radius: 20px;
+}
+
+#page-content{
+	grid-row: 2/3;
+	height: 100%;
+	width: 100%;
+	min-height:250px;
+	min-width: 300px;
+	padding: 15px;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+
+#page-content[data-expanded="true"]{
+	grid-column: 2/4;
+}
+
+#page-content[data-expanded="false"]{
+	grid-column: 3/4;
+}
+
+#disabled-page-content{
+	background-color: rgba(0, 0, 0, .4);
+	height: 100%;
+	width: 100%;
+	left: 0;
+	top: 0;
+	grid-row: 2/3;
+	display: none;
+	z-index: 9;
+}
+
+#disabled-page-content[data-expanded="true"]{
+	grid-column: 2/4;
+}
+
+#disabled-page-content[data-expanded="false"]{
+	grid-column: 3/4;
+}

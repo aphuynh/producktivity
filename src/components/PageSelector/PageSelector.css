@@ -1,0 +1,131 @@
+.page-selector{
+    width: 90%;
+    height: 40px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 400px;
+    font-size: 1.15em;
+    color: var(--gray);
+    column-gap: 5px;
+}
+
+.page-selector-arrow-button{
+    display: flex;
+    align-items: center;
+    row-gap: 5px;
+    font-size: .9em;
+}
+
+.page-selector-arrow-button[data-disabled="false"]{
+    color: var(--green);
+    cursor: pointer;
+}
+
+.page-selector-arrow-button[data-disabled="true"]{
+    color: var(--gray);
+    cursor: default;
+}
+
+.page-selector-arrow-button[data-disabled="false"]:active{
+    color: var(--green-active)
+}
+
+.page-selector-arrow-icon{
+    height: 12px;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.page-selector-arrow-button[data-disabled="false"]>svg>path{
+    fill: var(--green);
+}
+
+.page-selector-arrow-button[data-disabled="true"]>svg>path{
+    fill: var(--gray);
+}
+
+.page-selector-arrow-button[data-disabled="false"]:active>svg>path{
+    fill: var(--green-active);
+}
+
+.page-selector-pages-section{
+    display: flex;
+    align-items: center;
+    column-gap: 3px;
+    padding: 0 10px;
+    flex-shrink: 1.5;
+}
+
+.page-selector-page-number-button{
+    color: var(--gray);
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0 8px;
+    border-radius: 10px;
+}
+
+.page-selector-current-page-number{
+    color: var(--white);
+    background-color: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 10px;
+    cursor: default;
+}
+
+.page-selector-page-number-text-input{
+    width: 45px;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: center;
+    color: var(--green);
+    font-size: 1em;
+}
+
+.page-selector-page-number-text-input[data-disabled="true"]{
+    display: none;
+}
+
+.page-selector-page-number-text-input:focus::placeholder {
+    color: transparent;
+}
+
+.page-selector-page-number-button[data-disabled="true"]{
+    display: none;
+}
+
+.page-selector-current-page-number[data-disabled="true"]{
+    display: none;
+}
+
+.page-selector-last-page-number-button[data-current-page="true"]{
+    color: var(--white);
+    background-color: var(--green);
+}
+
+.page-selector-max-page-results, .page-selector-information{
+    font-size: .7em;
+    flex-shrink: 2;
+}
+
+
+.page-selector-results-count-select{
+    padding: 0;
+    font-size: .9em;
+    color: var(--green);
+    margin-left: 5px;
+    border: solid 1px var(--green);
+}
+
+.page-select-arrow-button-label{
+    font-size: .9em;
+}

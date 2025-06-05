@@ -1,0 +1,5 @@
+{
+    "baseUrlProducktivityManager": "http://localhost:5001",
+    "images": "D:/angel/Documents/Producktivity/",
+    "validYearRange": 500
+}
