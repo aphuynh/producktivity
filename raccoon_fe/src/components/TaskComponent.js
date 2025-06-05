@@ -33,9 +33,9 @@ const TaskComponent = ({getWallet, updateWallet, sendAlert, raccoins}) => {
 
     const handleCompleteTask = () =>{
         if(!highlightedTask){
-            sendAlert("No task selected", "bad"); 
+            sendAlert("No task selected D:", "bad"); 
         }else if(highlightedTask.classList.contains("completed")){
-            sendAlert("Task already completed", "bad");
+            sendAlert("Task already completed!", "bad");
         }else{
             completeTask(highlightedTask.getAttribute("taskid"));
             addCategory(highlightedTask.getAttribute("taskid"), ["Completed"]);
@@ -48,7 +48,7 @@ const TaskComponent = ({getWallet, updateWallet, sendAlert, raccoins}) => {
 
     const handleRemoveTask = () =>{
         if(!highlightedTask){
-            sendAlert("No task selected", "bad"); 
+            sendAlert("No task selected D:", "bad"); 
         }else{
             removeTask(highlightedTask.getAttribute("taskid"));
             getTasks();
@@ -107,9 +107,7 @@ const TaskComponent = ({getWallet, updateWallet, sendAlert, raccoins}) => {
             response = await response.json();
 
         if(response === "failed"){
-            sendAlert("Unable to update progress D:", "bad");
-        }else{
-            sendAlert("Progress updated!", "good")
+            sendAlert("Unable to update task in-progress category D:", "bad");
         }
     }, [sendAlert])
 
@@ -143,7 +141,7 @@ const TaskComponent = ({getWallet, updateWallet, sendAlert, raccoins}) => {
         let response = await fetch("/remove/" + id);
             response = await response.json();
             if(response === "failed"){
-                sendAlert("There was an error removing your task.", "bad");
+                sendAlert("There was an error removing your task", "bad");
             }else{
                 sendAlert("Task removed!", "good")
             }
@@ -211,9 +209,7 @@ const TaskComponent = ({getWallet, updateWallet, sendAlert, raccoins}) => {
         });
             response = await response.json();
             if(response === "failed"){
-                sendAlert("Something went wrong D:", "bad");
-            }else{
-                sendAlert("Success!", "good")
+                sendAlert("Something went wrong with updating this task's category D:", "bad");
             }
     }, [sendAlert])
 

@@ -6,10 +6,8 @@ import "../style/StoreComponent.css";
 const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInventory}) => {
 
     const [storeItems, setStoreItems] = useState([{}]);
-
-    const [selectedTab, setSelectedTab] = useState("");
     const [storePage, setStorePage] = useState("all");
-    const [surpriseCost, setSurpriseCost] = useState(10);
+    const surpriseCost = useState(10);
 
     const selectStoreTab = (e) => {
 
@@ -19,7 +17,6 @@ const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInvent
             for(var i = 0; i < siblings.length; i++){
                 siblings[i].classList.remove("selected-tab");
             }
-            setSelectedTab(e.target);
             e.target.classList.add("selected-tab");
         }
     }
@@ -33,8 +30,10 @@ const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInvent
     const refreshFeatured = useCallback(async () => {
         let response = await fetch("/refresh");
             response = await response.json();
-            console.log(response)
-    }, [])
+            if(response === "failed"){
+                sendAlert("Error occured while attempting to refresh store", "bad");
+            }
+    }, [sendAlert])
 
     const purchaseItem = useCallback(async (id, cost) => {
         let response = await fetch("/purchase", {
@@ -46,7 +45,7 @@ const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInvent
         });
             response = await response.json();
             if(response === "failed"){
-                sendAlert("Unable to purchase item D:", "bad");
+                sendAlert("Error occured while attempting to purchase item D:", "bad");
             }
     }, [sendAlert])
 
@@ -59,8 +58,9 @@ const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInvent
             getStore();
             getInventory();
             getWallet();
+            sendAlert("Yay! You purchased a " + e.target.getAttribute("name") + " :D", "good");
         }else{
-            sendAlert("Not enough raccoins! Complete more tasks to purchase a plushie :D", "bad");
+            sendAlert("Not enough raccoins :(", "bad");
         }
     }
 
@@ -74,16 +74,15 @@ const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInvent
             getStore();
             getInventory();
             getWallet();
-            sendAlert("You purchased a " + storeItems[ind].name + " :D", "good");
+            sendAlert("Congrats! You got a " + storeItems[ind].name + " :D", "good");
         }else{
-            sendAlert("Not enough raccoins! Complete more tasks to purchase a plushie :D", "bad");
+            sendAlert("Not enough raccoins :(", "bad");
         }
     }
 
     useEffect(() => {
         refreshFeatured();
         getStore();
-        setSelectedTab(document.getElementById("all-shop-tab"))
     },[getStore, refreshFeatured])
 
     return (
@@ -113,7 +112,7 @@ const StoreComponent = ({getWallet, updateWallet, sendAlert, raccoins, getInvent
                                         <img src={item.img_src} className="store-item-image" alt={item.name}></img>
                                     </div>
                                     {storePage === "featured" ? <div className='item-button-wrapper'>
-                                        <div className={"store-item-button" + ((item.stock <= 0) ? " disabled" : "")} onClick={handlePurchaseItem} storeitemid={item.id} cost={item.cost}>{item.cost} Raccoins</div>
+                                        <div className={"store-item-button" + ((item.stock <= 0) ? " disabled" : "")} onClick={handlePurchaseItem} name={item.name} storeitemid={item.id} cost={item.cost}>{item.cost} Raccoins</div>
                                     </div> : ""}                
                                 </div>
                             </div>

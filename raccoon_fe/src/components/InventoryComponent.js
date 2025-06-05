@@ -1,12 +1,11 @@
-import React, {useEffect, useState} from 'react';
-import { faArrowUpWideShort, faFilter, faStar as faStarFilled } from "@fortawesome/free-solid-svg-icons";
-import { faStar } from "@fortawesome/free-regular-svg-icons";
+import React from 'react';
+import { faArrowUpWideShort, faFilter } from "@fortawesome/free-solid-svg-icons";
+//import { faStar } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "../style/InventoryComponent.css";
 
-const InventoryComponent = ({sendAlert, raccoins, getInventory, inventoryItems, setInventoryPage}) => {
+const InventoryComponent = ({inventoryItems, setInventoryPage}) => {
 
-    const [selectedTab, setSelectedTab] = useState("");
 
     const selectInventoryTab = (e) => {
 
@@ -15,7 +14,6 @@ const InventoryComponent = ({sendAlert, raccoins, getInventory, inventoryItems, 
             for(var i = 0; i < siblings.length; i++){
                 siblings[i].classList.remove("selected-tab");
             }
-            setSelectedTab(e.target);
             e.target.classList.add("selected-tab");
         }
         let page = "";
@@ -39,10 +37,6 @@ const InventoryComponent = ({sendAlert, raccoins, getInventory, inventoryItems, 
         const dateString = days[d.getDay()] + ", " + months[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " at " + t
         return dateString
     }
-
-    useEffect(() => {
-        setSelectedTab(document.getElementById("all-inventory-tab"))
-    },[])
 
     return (
         <div className='inventory-wrapper'>

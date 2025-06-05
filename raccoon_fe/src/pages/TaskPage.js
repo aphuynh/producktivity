@@ -4,6 +4,8 @@ import "../style/TaskPage.css";
 import TaskComponent from '../components/TaskComponent';
 import StoreComponent from '../components/StoreComponent';
 import InventoryComponent from '../components/InventoryComponent';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const TaskPage = () => {
     const [raccoins, setRaccoins] = useState(0);
@@ -43,29 +45,29 @@ const TaskPage = () => {
 
 
     const sendAlert = (message, type) =>{
-        let elem = document.getElementById("alert-message");
-
-        elem.style.display = "flex";
-        elem.classList.add(type);
-        elem.innerHTML= message;
-        elem.style.opacity = 1;
-        
-        setTimeout(function(){
-            var fade = setInterval(function(){
-                if(elem.style.opacity > 0){
-                    elem.style.opacity -= .1
-                }else{
-                    elem.innerHTML = ""
-                    elem.classList.remove(type)
-                    elem.style.display = "none";
-                    clearInterval(fade);
-                }
-            }, 50)
-        }, 4000)
+        if(type === "good"){
+            toast.success(message);
+        }else if(type === "bad"){
+            toast.error(message);
+        }else{
+            toast(message);
+        }
     }    
 
   return (
     <div className='task-page'>
+        <ToastContainer
+            position="bottom-left"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+        ></ToastContainer>
         <div className='user-info'>
             <div className='welcome-section'>Welcome back, {name}!</div>
             <div className='wallet'>Raccoins: {raccoins}</div>
